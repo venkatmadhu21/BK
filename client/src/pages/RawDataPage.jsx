@@ -11,7 +11,8 @@ const RawDataPage = () => {
     const fetchRawData = async () => {
       try {
         setLoading(true);
-        const res = await api.get('/api/family/raw-data');
+        // Use the new API endpoint that uses members collection
+        const res = await api.get('/api/family/raw-data-new');
         setData(res.data);
         setLoading(false);
       } catch (err) {
@@ -39,7 +40,7 @@ const RawDataPage = () => {
       
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <p className="mb-4">
-          This page shows the raw data from the MongoDB database (bal-krishna-nivas, collection: familymembers).
+          This page shows the raw data from the MongoDB database (bal-krishna-nivas, collection: members).
         </p>
         
         <div className="mb-4">
@@ -87,17 +88,19 @@ const RawDataPage = () => {
                       {member.serNo}
                     </Link>
                   </td>
-                  <td className="py-2 px-4 border-b border-gray-200">{member.name}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {member.fullName || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`.trim()}
+                  </td>
                   <td className="py-2 px-4 border-b border-gray-200">{member.gender}</td>
                   <td className="py-2 px-4 border-b border-gray-200">{member.vansh || '-'}</td>
                   <td className="py-2 px-4 border-b border-gray-200">{member.level}</td>
                   <td className="py-2 px-4 border-b border-gray-200">
-                    {member.spouse?.name ? (
+                    {member.spouseSerNo ? (
                       <Link 
-                        to={`/family/member/${member.spouse.serNo}`}
+                        to={`/family/member/${member.spouseSerNo}`}
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        {member.spouse.name} (#{member.spouse.serNo})
+                        Spouse (#{member.spouseSerNo})
                       </Link>
                     ) : '-'}
                   </td>

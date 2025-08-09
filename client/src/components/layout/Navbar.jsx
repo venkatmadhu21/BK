@@ -17,7 +17,8 @@ import {
   BookOpen,
   Info,
   Globe,
-  ChevronDown
+  ChevronDown,
+  Heart
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -29,13 +30,16 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [isTreeDropdownOpen, setIsTreeDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const languageDropdownRef = useRef(null);
   const treeDropdownRef = useRef(null);
+  const userDropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate('/');
     setIsMenuOpen(false);
+    setIsUserDropdownOpen(false);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -45,7 +49,7 @@ const Navbar = () => {
     setIsLanguageDropdownOpen(false);
   };
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside or pressing escape
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
@@ -54,11 +58,25 @@ const Navbar = () => {
       if (treeDropdownRef.current && !treeDropdownRef.current.contains(event.target)) {
         setIsTreeDropdownOpen(false);
       }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setIsUserDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsLanguageDropdownOpen(false);
+        setIsTreeDropdownOpen(false);
+        setIsUserDropdownOpen(false);
+        setIsMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -77,6 +95,8 @@ const Navbar = () => {
       icon: Users,
       items: [
         { path: '/family', label: t('nav.viewTree'), icon: Users },
+        { path: '/relationships', label: 'All Relationships', icon: Heart },
+        { path: '/new-features', label: 'New Features', icon: Info },
         { path: '/api-test', label: t('nav.apiTest'), icon: Home },
         { path: '/seed', label: t('nav.seedData'), icon: Home },
         { path: '/raw-data', label: t('nav.rawData'), icon: Home }
@@ -240,8 +260,15 @@ const Navbar = () => {
             {/* Auth Section */}
             <div className="ml-1 lg:ml-2 xl:ml-4 pl-1 lg:pl-2 xl:pl-4 border-l border-white/30">
               {isAuthenticated ? (
-                <div className="relative group">
-                  <button className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium text-white hover:bg-white/25 transition-all duration-300 hover:scale-105">
+                <div className="relative" ref={userDropdownRef}>
+                  <button 
+                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                    className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                      isUserDropdownOpen 
+                        ? 'bg-white/25 text-orange-100' 
+                        : 'text-white hover:bg-white/25'
+                    }`}
+                  >
                     <div className="w-6 h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 bg-white rounded-full flex items-center justify-center shadow-md">
                       <User size={12} className="lg:w-[14px] lg:h-[14px] text-orange-600" />
                     </div>
@@ -249,13 +276,17 @@ const Navbar = () => {
                     <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-orange-200 rounded-full animate-pulse"></div>
                   </button>
                   
-                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 border border-orange-200">
+                  {isUserDropdownOpen && (
+                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl py-2 z-50 border border-orange-200">
                     <div className="px-4 py-3 border-b border-orange-100">
                       <p className="text-sm font-semibold text-gray-800">{user?.firstName} {user?.lastName}</p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
                     </div>
                     <button
-                      onClick={() => navigate('/profile')}
+                      onClick={() => {
+                        navigate('/profile');
+                        setIsUserDropdownOpen(false);
+                      }}
                       className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors rounded-lg mx-2 w-full text-left"
                     >
                       <User size={16} />

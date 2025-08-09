@@ -41,6 +41,8 @@ import FamilyTreeComponent from './components/family/FamilyTree';
 import SeedDataPage from './pages/SeedDataPage';
 import ApiTestPage from './pages/ApiTestPage';
 import RawDataPage from './pages/RawDataPage';
+import NewFeaturesShowcase from './pages/NewFeaturesShowcase';
+import RelationshipsPage from './pages/RelationshipsPage';
 
 function App() {
   return (
@@ -150,6 +152,20 @@ function App() {
             <Route path="/raw-data" element={
               <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
                 <RawDataPage />
+              </main>
+            } />
+            
+            {/* New Features Showcase */}
+            <Route path="/new-features" element={
+              <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
+                <NewFeaturesShowcase />
+              </main>
+            } />
+            
+            {/* Relationships Page */}
+            <Route path="/relationships" element={
+              <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
+                <RelationshipsPage />
               </main>
             } />
             <Route path="/profile" element={

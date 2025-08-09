@@ -86,7 +86,7 @@ const resources = {
       // Family Tree Names
       familyNames: {
         ganeshGogte: 'Ganesh Gogte',
-        balardGogte: 'Balard Gogte', 
+        balalGogte: 'Balal Gogte', 
         ramakrishnaGogte: 'Ramakrishna Gogte',
         balwantGogte: 'Balwant Gogte',
         ganeshGogte2: 'Ganesh Gogte',
@@ -272,7 +272,7 @@ const resources = {
         testAudio: 'ऑडिओ टेस्ट करा',
         heartfeltWelcome: 'आपले हार्दिक स्वागत',
         architecturalMarvel: 'एक अद्भुत स्थापत्य कला जी दैवी कारागिरी आणि आध्यात्मिक भक्तीचा पुरावा म्हणून उभी आहे',
-        buildingName: 'बालकृष्ण निवास',
+        buildingName: 'बाळकृष्ण निवास',
         testButton: 'टेस्ट',
         stopButton: 'थांबवा'
       },
@@ -312,7 +312,7 @@ const resources = {
       // Family Tree Names - मराठी
       familyNames: {
         ganeshGogte: 'गणेश गोगटे',
-        balardGogte: 'बालार्द गोगटे',
+        balalGogte: 'बलाल गोगटे',
         ramakrishnaGogte: 'रामकृष्ण गोगटे',
         balwantGogte: 'बलवंत गोगटे',
         ganeshGogte2: 'गणेश गोगटे',

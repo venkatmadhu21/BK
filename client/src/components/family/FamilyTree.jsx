@@ -6,13 +6,17 @@ import VerticalFamilyTree from './VerticalFamilyTree';
 import ModernFamilyTree from './ModernFamilyTree';
 import CardFamilyTree from './CardFamilyTree';
 import FamilyTreePDFExport from './FamilyTreePDFExport';
+import EnhancedFamilyTree from './EnhancedFamilyTree';
+import ComprehensiveFamilyTree from './ComprehensiveFamilyTree';
+import VisualFamilyTree from './VisualFamilyTree';
+import InteractiveFamilyTree from './InteractiveFamilyTree';
 import api from '../../utils/api';
 
 const FamilyTree = () => {
   const [treeData, setTreeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewType, setViewType] = useState('modern');
+  const [viewType, setViewType] = useState('interactive');
   const { serNo } = useParams();
   const navigate = useNavigate();
 
@@ -20,10 +24,11 @@ const FamilyTree = () => {
     const fetchFamilyTree = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/api/family/tree/${serNo || 1}`);
+        // Use the new API endpoint that uses members and relationships collections
+        const res = await api.get(`/api/family/tree-new/${serNo || 1}`);
         
         // Log the raw data from the API
-        console.log('Raw API data:', JSON.stringify(res.data, null, 2));
+        console.log('Raw API data from new endpoint:', JSON.stringify(res.data, null, 2));
         
         // Transform the data for our tree view
         const transformedData = transformData(res.data);
@@ -55,10 +60,12 @@ const FamilyTree = () => {
       return null;
     }
     
-    console.log('Processing member:', member.name, member.serNo);
+    // Handle both old and new data structures
+    const memberName = member.fullName || member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown';
+    console.log('Processing member:', memberName, member.serNo);
     
     const node = {
-      name: member.name || 'Unknown',
+      name: memberName,
       attributes: {
         serNo: member.serNo || 0,
         gender: member.gender || 'Unknown',
@@ -88,14 +95,14 @@ const FamilyTree = () => {
     
     // Add children if they exist
     if (Array.isArray(member.children) && member.children.length > 0) {
-      console.log(`Member ${member.name} (${member.serNo}) has ${member.children.length} children`);
+      console.log(`Member ${memberName} (${member.serNo}) has ${member.children.length} children`);
       node.children = member.children
         .filter(child => child) // Filter out null/undefined children
         .map(child => transformData(child))
         .filter(child => child); // Filter out failed transformations
     } else if (Array.isArray(member.childrenSerNos) && member.childrenSerNos.length > 0) {
       // If we have childrenSerNos but no children array, log this for debugging
-      console.log(`Member ${member.name} (${member.serNo}) has childrenSerNos but no children array:`, 
+      console.log(`Member ${memberName} (${member.serNo}) has childrenSerNos but no children array:`, 
         member.childrenSerNos);
     }
 
@@ -125,10 +132,54 @@ const FamilyTree = () => {
           <button
             type="button"
             className={`px-4 py-2 text-sm font-medium ${
-              viewType === 'modern' 
+              viewType === 'interactive' 
                 ? 'bg-blue-600 text-white' 
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             } rounded-l-lg`}
+            onClick={() => setViewType('interactive')}
+          >
+            Interactive Tree with Relationships
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 text-sm font-medium ${
+              viewType === 'visual' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            onClick={() => setViewType('visual')}
+          >
+            Visual Tree with Relationships
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 text-sm font-medium ${
+              viewType === 'comprehensive' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            onClick={() => setViewType('comprehensive')}
+          >
+            All Members & Relationships
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 text-sm font-medium ${
+              viewType === 'enhanced' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            onClick={() => setViewType('enhanced')}
+          >
+            Enhanced Tree
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 text-sm font-medium ${
+              viewType === 'modern' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
             onClick={() => setViewType('modern')}
           >
             Modern Tree
@@ -186,6 +237,26 @@ const FamilyTree = () => {
         viewType={viewType} 
         rootMemberName={treeData?.name}
       />
+      
+      {/* Interactive tree view - SVG tree with relationship lines */}
+      {viewType === 'interactive' && (
+        <InteractiveFamilyTree />
+      )}
+      
+      {/* Visual tree view - Tree with relationship connections */}
+      {viewType === 'visual' && (
+        <VisualFamilyTree />
+      )}
+      
+      {/* Comprehensive tree view - All members and relationships */}
+      {viewType === 'comprehensive' && (
+        <ComprehensiveFamilyTree />
+      )}
+      
+      {/* Enhanced tree view */}
+      {viewType === 'enhanced' && (
+        <EnhancedFamilyTree />
+      )}
       
       {/* Modern tree view */}
       {viewType === 'modern' && (

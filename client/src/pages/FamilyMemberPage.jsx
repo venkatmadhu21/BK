@@ -16,21 +16,36 @@ const FamilyMemberPage = () => {
   const { serNo } = useParams();
   const { addToast } = useToast();
 
+  // Debug: Log the current location and params
+  console.log('FamilyMemberPage - Current location:', window.location.pathname);
+  console.log('FamilyMemberPage - useParams result:', useParams());
+  console.log('FamilyMemberPage - serNo from params:', serNo);
+
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
         setLoading(true);
         
-        // Fetch member details
-        const memberRes = await api.get(`/api/family/member/${serNo}`);
+        // Debug: Log the serNo parameter
+        console.log('FamilyMemberPage serNo:', serNo);
+        
+        if (!serNo || serNo === 'undefined' || isNaN(parseInt(serNo))) {
+          throw new Error(`Invalid serNo parameter: ${serNo}`);
+        }
+        
+        // Fetch member details using new API
+        console.log(`Fetching member: /api/family/member-new/${serNo}`);
+        const memberRes = await api.get(`/api/family/member-new/${serNo}`);
         setMember(memberRes.data);
         
-        // Fetch parents
-        const parentsRes = await api.get(`/api/family/member/${serNo}/parents`);
+        // Fetch parents using new API
+        console.log(`Fetching parents: /api/family/member-new/${serNo}/parents`);
+        const parentsRes = await api.get(`/api/family/member-new/${serNo}/parents`);
         setParents(parentsRes.data);
         
-        // Fetch children
-        const childrenRes = await api.get(`/api/family/member/${serNo}/children`);
+        // Fetch children using new API
+        console.log(`Fetching children: /api/family/member-new/${serNo}/children`);
+        const childrenRes = await api.get(`/api/family/member-new/${serNo}/children`);
         setChildren(childrenRes.data);
         
         // Set a minimum loading time for better UX
@@ -53,7 +68,8 @@ const FamilyMemberPage = () => {
     try {
       setIsExporting(true);
       const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `family-member-${member.name.replace(/\s+/g, '-')}-${timestamp}.pdf`;
+      const memberName = member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim();
+      const filename = `family-member-${memberName.replace(/\s+/g, '-')}-${timestamp}.pdf`;
       await exportMemberDetailsToPDF(member, filename);
       addToast('PDF exported successfully!', 'success');
     } catch (error) {
@@ -134,14 +150,18 @@ const FamilyMemberPage = () => {
               <div>
                 {parents.father && (
                   <Link to={`/family/member/${parents.father.serNo}`} className="block p-2 hover:bg-gray-50 rounded mb-2">
-                    <p className="font-medium">{parents.father.name}</p>
+                    <p className="font-medium">
+                      {parents.father.fullName || `${parents.father.firstName || ''} ${parents.father.lastName || ''}`.trim()}
+                    </p>
                     <p className="text-xs text-gray-500">Father • #{parents.father.serNo}</p>
                   </Link>
                 )}
                 
                 {parents.mother && (
                   <Link to={`/family/member/${parents.mother.serNo}`} className="block p-2 hover:bg-gray-50 rounded">
-                    <p className="font-medium">{parents.mother.name}</p>
+                    <p className="font-medium">
+                      {parents.mother.fullName || `${parents.mother.firstName || ''} ${parents.mother.lastName || ''}`.trim()}
+                    </p>
                     <p className="text-xs text-gray-500">Mother • #{parents.mother.serNo}</p>
                   </Link>
                 )}
@@ -166,7 +186,9 @@ const FamilyMemberPage = () => {
                     to={`/family/member/${child.serNo}`} 
                     className="block p-2 hover:bg-gray-50 rounded mb-1"
                   >
-                    <p className="font-medium">{child.name}</p>
+                    <p className="font-medium">
+                      {child.fullName || `${child.firstName || ''} ${child.lastName || ''}`.trim()}
+                    </p>
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>{child.gender}</span>
                       <span>#{child.serNo}</span>

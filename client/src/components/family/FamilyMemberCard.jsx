@@ -12,7 +12,7 @@ const FamilyMemberCard = ({ member }) => {
           {member.profilePicture ? (
             <img 
               src={member.profilePicture} 
-              alt={member.name}
+              alt={member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim()}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.onerror = null;
@@ -32,7 +32,9 @@ const FamilyMemberCard = ({ member }) => {
           )}
         </div>
         <div>
-          <h3 className="text-lg font-semibold">{member.name}</h3>
+          <h3 className="text-lg font-semibold">
+            {member.fullName || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`.trim()}
+          </h3>
           <p className="text-gray-600 text-sm">
             {member.vansh && <span className="mr-2">{member.vansh}</span>}
             <span className="bg-gray-200 px-2 py-1 rounded text-xs">#{member.serNo}</span>
@@ -51,14 +53,14 @@ const FamilyMemberCard = ({ member }) => {
         </div>
       </div>
 
-      {member.spouse && (
+      {member.spouseSerNo && (
         <div className="mb-4 p-3 bg-gray-50 rounded">
           <p className="text-sm text-gray-500 mb-1">Spouse</p>
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mr-3 border border-gray-200">
               <img 
-                src={member.gender === 'Male' ? `/images/profiles/female${(member.spouse.serNo % 8) + 1}.jpg` : `/images/profiles/male${(member.spouse.serNo % 8) + 1}.jpg`}
-                alt={member.spouse.name}
+                src={member.gender === 'Male' ? `/images/profiles/female${(member.spouseSerNo % 8) + 1}.jpg` : `/images/profiles/male${(member.spouseSerNo % 8) + 1}.jpg`}
+                alt="Spouse"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -66,7 +68,12 @@ const FamilyMemberCard = ({ member }) => {
                 }}
               />
             </div>
-            <p>{member.spouse.name} {member.spouse.serNo && <span className="text-xs text-gray-500">#{member.spouse.serNo}</span>}</p>
+            <Link 
+              to={`/family/member/${member.spouseSerNo}`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              Spouse <span className="text-xs text-gray-500">#{member.spouseSerNo}</span>
+            </Link>
           </div>
         </div>
       )}

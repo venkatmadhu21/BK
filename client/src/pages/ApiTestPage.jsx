@@ -9,11 +9,23 @@ const ApiTestPage = () => {
   const navigate = useNavigate();
 
   const testEndpoints = [
-    { name: 'Get All Family Members', endpoint: '/api/family' },
-    { name: 'Get Member by SerNo', endpoint: '/api/family/member/1' },
-    { name: 'Get Member Children', endpoint: '/api/family/member/1/children' },
-    { name: 'Get Member Parents', endpoint: '/api/family/member/3/parents' },
-    { name: 'Get Family Tree', endpoint: '/api/family/tree/1' }
+    // Old endpoints
+    { name: 'Get All Family Members (Old)', endpoint: '/api/family' },
+    { name: 'Get Member by SerNo (Old)', endpoint: '/api/family/member/1' },
+    { name: 'Get Member Children (Old)', endpoint: '/api/family/member/1/children' },
+    { name: 'Get Member Parents (Old)', endpoint: '/api/family/member/3/parents' },
+    { name: 'Get Family Tree (Old)', endpoint: '/api/family/tree/1' },
+    
+    // New endpoints using members and relationships collections
+    { name: 'Get All Members (New)', endpoint: '/api/family/members-new' },
+    { name: 'Get Member by SerNo (New)', endpoint: '/api/family/member-new/1' },
+    { name: 'Get Member Children (New)', endpoint: '/api/family/member-new/1/children' },
+    { name: 'Get Member Parents (New)', endpoint: '/api/family/member-new/3/parents' },
+    { name: 'Get Family Tree (New)', endpoint: '/api/family/tree-new/1' },
+    { name: 'Get All Relationships', endpoint: '/api/family/all-relationships' },
+    { name: 'Get Relationships for Member', endpoint: '/api/family/relationships/1' },
+    { name: 'Get Relationship Types', endpoint: '/api/family/relationship-types' },
+    { name: 'Get Raw Data (New)', endpoint: '/api/family/raw-data-new' }
   ];
   
   const seedDatabase = async () => {

@@ -19,7 +19,7 @@ const Home = () => {
 
   
   useEffect(() => {
-    const texts = ['BalKrishna Nivas', 'बालकृष्ण निवास'];
+    const texts = ['BalKrishna Nivas', 'बाळकृष्ण निवास'];
     const typeSpeed = isDeleting ? 100 : 150;
     const currentText = texts[currentIndex];
     
@@ -103,45 +103,45 @@ const Home = () => {
                 {/* Horizontal Tree Layout */}
                 <div className="flex flex-wrap items-center justify-center gap-2 xs:gap-3 sm:gap-4 text-xs xs:text-sm sm:text-base">
                   
-                  {/* First Generation */}
-                  <div className="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
-                    <span className="font-semibold text-gray-800">{t('familyNames.ganeshGogte')}</span>
+                  {/* First Generation - Ganesh Gogte (Red) */}
+                  <div className="bg-gradient-to-r from-red-500 to-red-400 border border-red-600 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                    <span className="font-semibold text-white">{t('familyNames.ganeshGogte')}</span>
                   </div>
                   
                   {/* Arrow */}
                   <div className="text-orange-500 font-bold">→</div>
                   
-                  {/* Second Generation */}
-                  <div className="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
-                    <span className="font-semibold text-gray-800">{t('familyNames.balardGogte')}</span>
+                  {/* Second Generation - Balal Gogte (Dark Blue) */}
+                  <div className="bg-gradient-to-r from-blue-800 to-blue-700 border border-blue-900 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                    <span className="font-semibold text-white">{t('familyNames.balalGogte')}</span>
                   </div>
                   
                   {/* Arrow */}
                   <div className="text-orange-500 font-bold">→</div>
                   
-                  {/* Third Generation */}
-                  <div className="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                  {/* Third Generation - Ramkrishna Gogte (Yellow) */}
+                  <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 border border-yellow-500 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
                     <span className="font-semibold text-gray-800">{t('familyNames.ramakrishnaGogte')}</span>
                   </div>
                   
                   {/* Arrow */}
                   <div className="text-orange-500 font-bold">→</div>
                   
-                  {/* Fourth Generation - Three Brothers */}
+                  {/* Fourth Generation - Three Brothers (Light Yellow) */}
                   <div className="flex flex-wrap items-center gap-1 xs:gap-2 sm:gap-3">
-                    <div className="bg-gradient-to-r from-orange-200 to-orange-100 border border-orange-400 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                    <div className="bg-gradient-to-r from-yellow-200 to-yellow-100 border border-yellow-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
                       <span className="font-bold text-gray-800">{t('familyNames.balwantGogte')}</span>
                     </div>
                     
                     <div className="text-orange-400 text-xs">|</div>
                     
-                    <div className="bg-gradient-to-r from-orange-200 to-orange-100 border border-orange-400 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                    <div className="bg-gradient-to-r from-yellow-200 to-yellow-100 border border-yellow-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
                       <span className="font-bold text-gray-800">{t('familyNames.ganeshGogte2')}</span>
                     </div>
                     
                     <div className="text-orange-400 text-xs">|</div>
                     
-                    <div className="bg-gradient-to-r from-orange-200 to-orange-100 border border-orange-400 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
+                    <div className="bg-gradient-to-r from-yellow-200 to-yellow-100 border border-yellow-300 rounded-md px-2 xs:px-3 sm:px-4 py-1 xs:py-2 shadow-sm">
                       <span className="font-bold text-gray-800">{t('familyNames.hariGogte')}</span>
                     </div>
                   </div>
