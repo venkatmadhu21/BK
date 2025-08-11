@@ -300,6 +300,7 @@ const Navbar = () => {
                       <span>{t('nav.signOut')}</span>
                     </button>
                   </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2">
