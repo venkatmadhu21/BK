@@ -4,6 +4,8 @@ const Member = require('../models/Member');
 const Relationship = require('../models/Relationship');
 const auth = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
+const mongoose = require('mongoose');
+const { buildMembersIndex, buildRelationRulesMap, getRelationsForSerNo } = require('../utils/relationEngine');
 
 const router = express.Router();
 
@@ -425,10 +427,10 @@ router.get('/member-new/:serNo/children', async (req, res) => {
       return res.status(400).json({ message: 'Invalid serNo parameter' });
     }
     
-    // Find all relationships where this member is a father
+    // Find all relationships where this member is a parent (Son/Daughter relationships FROM parent TO children)
     const childRelationships = await Relationship.find({
       fromSerNo: serNo,
-      relation: 'father'
+      relation: { $in: ['Son', 'Daughter'] }
     });
     
     console.log(`Found ${childRelationships.length} child relationships for serNo ${serNo}`);
@@ -471,10 +473,10 @@ router.get('/member-new/:serNo/parents', async (req, res) => {
       return res.status(400).json({ message: 'Invalid serNo parameter' });
     }
     
-    // Find parent relationships
+    // Find parent relationships (Father/Mother relationships FROM children TO parents)
     const parentRelationships = await Relationship.find({
-      toSerNo: serNo,
-      relation: { $in: ['father', 'mother'] }
+      fromSerNo: serNo,
+      relation: { $in: ['Father', 'Mother'] }
     });
     
     console.log(`Found ${parentRelationships.length} parent relationships for serNo ${serNo}`);
@@ -483,10 +485,10 @@ router.get('/member-new/:serNo/parents', async (req, res) => {
     let mother = null;
     
     for (const rel of parentRelationships) {
-      if (rel.relation === 'father') {
-        father = await Member.findOne({ serNo: rel.fromSerNo });
-      } else if (rel.relation === 'mother') {
-        mother = await Member.findOne({ serNo: rel.fromSerNo });
+      if (rel.relation === 'Father') {
+        father = await Member.findOne({ serNo: rel.toSerNo });
+      } else if (rel.relation === 'Mother') {
+        mother = await Member.findOne({ serNo: rel.toSerNo });
       }
     }
 
@@ -543,11 +545,13 @@ router.get('/tree-new/:serNo', async (req, res) => {
 
     // Recursive function to build the family tree using relationships
     async function buildFamilyTreeNew(member) {
-      // Find all children using relationships - look for where this member is a father
+      // Find all children using relationships - look for Son/Daughter relationships FROM parent TO children
       const childRelationships = await Relationship.find({
         fromSerNo: member.serNo,
-        relation: 'father'
+        relation: { $in: ['Son', 'Daughter'] }
       });
+      
+      console.log(`Member ${member.serNo} (${member.fullName}) has ${childRelationships.length} child relationships`);
       
       // Get unique child serNos
       const childSerNos = [...new Set(childRelationships.map(rel => rel.toSerNo))];
@@ -560,6 +564,8 @@ router.get('/tree-new/:serNo', async (req, res) => {
       const children = await Member.find({ 
         serNo: { $in: childSerNos } 
       }).sort({ serNo: 1 });
+
+      console.log(`Found ${children.length} actual children for member ${member.serNo}`);
 
       const childrenWithDescendants = [];
       for (const child of children) {
@@ -656,6 +662,197 @@ router.get('/relationship-types', async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Server error');
+  }
+});
+
+// @route   GET api/family/dynamic-relations/:serNo
+// @desc    Compute dynamic relations in JS (no precomputed relationships needed)
+// @access  Public
+router.get('/dynamic-relations/:serNo', async (req, res) => {
+  try {
+    const serNo = parseInt(req.params.serNo);
+    if (!serNo || isNaN(serNo) || serNo <= 0) {
+      return res.status(400).json({ message: 'Invalid serNo parameter' });
+    }
+
+    // Load all members once and build index
+    const members = await Member.find().lean();
+    const membersById = buildMembersIndex(members);
+
+    // Load relationRules for English -> Marathi mapping
+    let relationRulesMap = new Map();
+    try {
+      const coll = mongoose.connection.db.collection('relationrules');
+      const docs = await coll.find({}).toArray();
+      relationRulesMap = buildRelationRulesMap(docs);
+    } catch (e) {
+      console.warn('relationrules collection not found or not accessible. Proceeding without Marathi mapping.');
+    }
+
+    const results = getRelationsForSerNo(serNo, membersById, relationRulesMap);
+
+    return res.json(results);
+  } catch (error) {
+    console.error('Error in /dynamic-relations/:serNo:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   POST api/family/generate-relations
+// @desc    Generate and persist relationships for all members or one (uses relationRules for Marathi)
+// @access  Public (can secure later)
+router.post('/generate-relations', async (req, res) => {
+  try {
+    const serNoParam = req.query.serNo;
+    const forSingle = serNoParam !== undefined;
+    const targetSerNo = forSingle ? parseInt(serNoParam) : null;
+    if (forSingle && (isNaN(targetSerNo) || targetSerNo <= 0)) {
+      return res.status(400).json({ message: 'Invalid serNo query parameter' });
+    }
+
+    // Load members
+    const members = await Member.find(forSingle ? { serNo: targetSerNo } : {}).lean();
+    if (!members.length) {
+      return res.status(404).json({ message: 'No members found for generation' });
+    }
+
+    // Build index with all members (to let relations resolve across the whole set)
+    const allMembers = await Member.find().lean();
+    const membersById = buildMembersIndex(allMembers);
+
+    // Load relationRules for English -> Marathi mapping
+    let relationRulesMap = new Map();
+    try {
+      const coll = mongoose.connection.db.collection('relationrules');
+      const docs = await coll.find({}).toArray();
+      relationRulesMap = buildRelationRulesMap(docs);
+    } catch (e) {
+      console.warn('relationrules collection not found or not accessible. Proceeding without Marathi mapping.');
+    }
+
+    let totalGenerated = 0;
+    const perMemberCounts = [];
+
+    for (const person of members) {
+      const rels = getRelationsForSerNo(person.serNo, membersById, relationRulesMap);
+      // Prepare docs to insert
+      const docs = rels
+        .map(r => ({
+          fromSerNo: person.serNo,
+          toSerNo: r.related?.serNo,
+          relation: r.relationEnglish, // store English label
+          relationMarathi: r.relationMarathi || '',
+        }))
+        .filter(d => Number.isFinite(d.toSerNo));
+
+      // Clean existing generated relations for this member
+      await Relationship.deleteMany({ fromSerNo: person.serNo });
+
+      if (docs.length) {
+        await Relationship.insertMany(docs, { ordered: false });
+        totalGenerated += docs.length;
+      }
+      perMemberCounts.push({ serNo: person.serNo, count: docs.length });
+    }
+
+    return res.json({
+      message: 'Relationships generated successfully',
+      mode: forSingle ? 'single' : 'all',
+      totalGenerated,
+      details: perMemberCounts,
+    });
+  } catch (error) {
+    console.error('Error in POST /generate-relations:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   GET api/family/relationships-expanded/:serNo
+// @desc    Read relationships from DB and expand with related member data
+// @access  Public
+router.get('/relationships-expanded/:serNo', async (req, res) => {
+  try {
+    const serNo = parseInt(req.params.serNo);
+    if (!serNo || isNaN(serNo) || serNo <= 0) {
+      return res.status(400).json({ message: 'Invalid serNo parameter' });
+    }
+
+    const rels = await Relationship.find({ fromSerNo: serNo }).lean();
+    if (!rels.length) {
+      return res.json([]);
+    }
+
+    const ids = [...new Set(rels.map(r => r.toSerNo))];
+    const members = await Member.find({ serNo: { $in: ids } }).lean();
+    const byId = new Map(members.map(m => [m.serNo, m]));
+
+    const expanded = rels.map(r => ({
+      relationEnglish: r.relation,
+      relationMarathi: r.relationMarathi || '',
+      related: byId.get(r.toSerNo) || { serNo: r.toSerNo },
+    }));
+
+    return res.json(expanded);
+  } catch (error) {
+    console.error('Error in GET /relationships-expanded/:serNo:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   GET api/family/complete-tree
+// @desc    Get complete family tree with all members organized by levels
+// @access  Public
+router.get('/complete-tree', async (req, res) => {
+  try {
+    console.log('Fetching complete family tree with all members');
+    
+    // Get all members
+    const allMembers = await Member.find().sort({ level: 1, serNo: 1 }).lean();
+    console.log(`Found ${allMembers.length} total members`);
+    
+    // Get all relationships
+    const allRelationships = await Relationship.find().lean();
+    console.log(`Found ${allRelationships.length} total relationships`);
+    
+    // Group members by level
+    const membersByLevel = allMembers.reduce((acc, member) => {
+      const level = member.level || 1;
+      if (!acc[level]) acc[level] = [];
+      acc[level].push(member);
+      return acc;
+    }, {});
+    
+    // For each member, add their children
+    const membersWithChildren = allMembers.map(member => {
+      const childRelationships = allRelationships.filter(rel => 
+        rel.fromSerNo === member.serNo && 
+        ['Son', 'Daughter'].includes(rel.relation)
+      );
+      
+      const childSerNos = childRelationships.map(rel => rel.toSerNo);
+      const children = allMembers.filter(m => childSerNos.includes(m.serNo));
+      
+      return {
+        ...member,
+        children: children,
+        childCount: children.length
+      };
+    });
+    
+    const result = {
+      totalMembers: allMembers.length,
+      totalRelationships: allRelationships.length,
+      levels: Object.keys(membersByLevel).sort((a, b) => parseInt(a) - parseInt(b)),
+      membersByLevel: membersByLevel,
+      membersWithChildren: membersWithChildren,
+      allMembers: allMembers
+    };
+    
+    console.log(`Returning complete tree with ${result.levels.length} levels`);
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching complete family tree:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

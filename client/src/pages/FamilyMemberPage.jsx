@@ -10,7 +10,9 @@ const FamilyMemberPage = () => {
   const [member, setMember] = useState(null);
   const [parents, setParents] = useState({ father: null, mother: null });
   const [children, setChildren] = useState([]);
+  const [relations, setRelations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRelations, setLoadingRelations] = useState(true);
   const [error, setError] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const { serNo } = useParams();
@@ -48,6 +50,20 @@ const FamilyMemberPage = () => {
         const childrenRes = await api.get(`/api/family/member-new/${serNo}/children`);
         setChildren(childrenRes.data);
         
+        // Fetch relations using relationRules mapping (dynamic computation)
+        try {
+          setLoadingRelations(true);
+          console.log(`Fetching relations: /api/family/dynamic-relations/${serNo}`);
+          const relationsRes = await api.get(`/api/family/dynamic-relations/${serNo}`);
+          console.log('Relations response:', relationsRes.data);
+          setRelations(relationsRes.data || []);
+        } catch (e) {
+          console.error('Failed to fetch dynamic relations (relationRules based):', e?.response?.data || e.message);
+          setRelations([]);
+        } finally {
+          setLoadingRelations(false);
+        }
+
         // Set a minimum loading time for better UX
         setTimeout(() => {
           setLoading(false);
@@ -57,6 +73,7 @@ const FamilyMemberPage = () => {
         setTimeout(() => {
           setError('Failed to load family member data. Please try again later.');
           setLoading(false);
+          setLoadingRelations(false);
         }, 300);
       }
     };
@@ -143,7 +160,7 @@ const FamilyMemberPage = () => {
           <div className="bg-white rounded-lg shadow-md p-4 mb-4">
             <h3 className="text-lg font-semibold mb-3 flex items-center">
               <UserCircle className="h-5 w-5 mr-2 text-blue-500" />
-              Parents
+              Parents ({(parents.father ? 1 : 0) + (parents.mother ? 1 : 0)})
             </h3>
             
             {parents.father || parents.mother ? (
@@ -198,6 +215,42 @@ const FamilyMemberPage = () => {
               </div>
             ) : (
               <p className="text-gray-500 text-sm">No children</p>
+            )}
+          </div>
+
+          {/* Dynamic Relations */}
+          <div className="bg-white rounded-lg shadow-md p-4 mt-4">
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <GitBranch className="h-5 w-5 mr-2 text-green-600" />
+              Relations ({relations.length})
+            </h3>
+            {loadingRelations ? (
+              <p className="text-gray-500 text-sm">Loading relations…</p>
+            ) : relations.length === 0 ? (
+              <p className="text-gray-500 text-sm">No relations found</p>
+            ) : (
+              <div className="max-h-72 overflow-y-auto divide-y">
+                {relations.map((r, idx) => {
+                  const name = [r.related?.firstName, r.related?.middleName, r.related?.lastName].filter(Boolean).join(' ');
+                  const label = r.relationMarathi ? `${r.relationEnglish} [${r.relationMarathi}]` : r.relationEnglish;
+                  return (
+                    <Link
+                      key={`${r.relationEnglish}-${r.related?.serNo}-${idx}`}
+                      to={`/family/member/${r.related?.serNo}`}
+                      className="block py-2 hover:bg-gray-50 rounded"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">
+                          <span className="font-medium">{label}</span>
+                          <span className="text-gray-500"> → </span>
+                          <span>{name}</span>
+                        </span>
+                        <span className="text-xs text-gray-400">#{r.related?.serNo}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             )}
           </div>
           

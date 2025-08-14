@@ -16,7 +16,7 @@ const FamilyTree = () => {
   const [treeData, setTreeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewType, setViewType] = useState('interactive');
+  const [viewType, setViewType] = useState('comprehensive');
   const { serNo } = useParams();
   const navigate = useNavigate();
 
@@ -24,34 +24,32 @@ const FamilyTree = () => {
     const fetchFamilyTree = async () => {
       try {
         setLoading(true);
-        // Use the new API endpoint that uses members and relationships collections
-        const res = await api.get(`/api/family/tree-new/${serNo || 1}`);
         
-        // Log the raw data from the API
-        console.log('Raw API data from new endpoint:', JSON.stringify(res.data, null, 2));
-        
-        // Transform the data for our tree view
-        const transformedData = transformData(res.data);
-        
-        // Log the transformed data
-        console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
-        
-        // Set a minimum loading time for better UX
-        setTimeout(() => {
+        if (viewType === 'comprehensive') {
+          // Use the complete tree API for comprehensive views
+          const res = await api.get('/api/family/complete-tree');
+          console.log('Complete tree data loaded:', res.data.totalMembers, 'members');
+          setTreeData(res.data);
+        } else {
+          // Use the individual tree API for single-root views
+          const res = await api.get(`/api/family/tree-new/${serNo || 1}`);
+          console.log('Individual tree data loaded for serNo:', serNo || 1);
+          
+          // Transform the data for our tree view
+          const transformedData = transformData(res.data);
           setTreeData(transformedData);
-          setLoading(false);
-        }, 300);
+        }
+        
+        setLoading(false);
       } catch (err) {
         console.error('Error fetching family tree:', err);
-        setTimeout(() => {
-          setError('Failed to load family tree. Please try again later.');
-          setLoading(false);
-        }, 300);
+        setError('Failed to load family tree. Please try again later.');
+        setLoading(false);
       }
     };
 
     fetchFamilyTree();
-  }, [serNo]);
+  }, [serNo, viewType]);
 
   // Transform the data structure for our tree view
   const transformData = (member) => {
@@ -113,6 +111,11 @@ const FamilyTree = () => {
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
   if (!treeData) return <div className="text-center py-10">No family tree data available.</div>;
   
+  // Additional safety check for data structure
+  if (viewType === 'comprehensive' && !treeData.totalMembers) {
+    return <div className="text-center py-10 text-yellow-600">Complete tree data not available. Please try again.</div>;
+  }
+  
   return (
     <div className="family-tree-container">
       <div className="mb-4">
@@ -122,9 +125,16 @@ const FamilyTree = () => {
       </div>
       
       <h2 className="text-2xl font-bold mb-4 text-center">Family Tree</h2>
-      <p className="text-center mb-6 text-gray-600">
-        Showing family tree for: <strong>{treeData.name}</strong> (#{treeData.attributes.serNo})
-      </p>
+      {viewType === 'comprehensive' ? (
+        <p className="text-center mb-6 text-gray-600">
+          Showing complete family tree with <strong>{treeData.totalMembers}</strong> members across {treeData.levels.length} generations
+        </p>
+      ) : (
+        <p className="text-center mb-6 text-gray-600">
+          Showing family tree for: <strong>{treeData?.name || 'Family Member'}</strong> 
+          {treeData?.attributes?.serNo && ` (#${treeData.attributes.serNo})`}
+        </p>
+      )}
       
       {/* View type selector */}
       <div className="flex justify-center mb-6">
@@ -219,7 +229,7 @@ const FamilyTree = () => {
           </button>
           <button
             type="button"
-            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+            className={`px-4 py-2 text-sm font-medium ${
               viewType === 'text' 
                 ? 'bg-blue-600 text-white' 
                 : 'bg-white text-gray-700 hover:bg-gray-100'
@@ -228,19 +238,76 @@ const FamilyTree = () => {
           >
             Text View
           </button>
+          <button
+            type="button"
+            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+              viewType === 'comprehensive' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            onClick={() => setViewType('comprehensive')}
+          >
+            All Members
+          </button>
         </div>
       </div>
       
-      {/* PDF Export Component */}
-      <FamilyTreePDFExport 
-        treeData={treeData} 
-        viewType={viewType} 
-        rootMemberName={treeData?.name}
-      />
+      {/* PDF Export Component - only show for single tree views */}
+      {viewType !== 'comprehensive' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
+        <FamilyTreePDFExport 
+          treeData={treeData} 
+          viewType={viewType} 
+          rootMemberName={treeData?.name}
+        />
+      )}
       
       {/* Interactive tree view - SVG tree with relationship lines */}
       {viewType === 'interactive' && (
         <InteractiveFamilyTree />
+      )}
+      
+      {/* Comprehensive view - All members organized by levels */}
+      {viewType === 'comprehensive' && treeData && (
+        <div className="mt-8">
+          <h3 className="text-xl font-bold mb-4">All Family Members ({treeData.totalMembers})</h3>
+          <div className="space-y-6">
+            {treeData.levels.map(level => (
+              <div key={level} className="bg-white rounded-lg shadow-md p-6">
+                <h4 className="text-lg font-semibold mb-4 text-gray-800">
+                  Generation {level} ({treeData.membersByLevel[level].length} members)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {treeData.membersByLevel[level].map(member => (
+                    <div key={member.serNo} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${member.gender === 'Male' ? 'bg-blue-500' : 'bg-pink-500'}`}></div>
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900">{member.fullName}</h5>
+                          <p className="text-sm text-gray-500">#{member.serNo}</p>
+                          {member.vansh && <p className="text-xs text-gray-400">{member.vansh}</p>}
+                        </div>
+                      </div>
+                      <div className="mt-2 flex space-x-2">
+                        <Link 
+                          to={`/family/member/${member.serNo}`}
+                          className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200"
+                        >
+                          View Details
+                        </Link>
+                        <button 
+                          onClick={() => navigate(`/family/tree/${member.serNo}`)}
+                          className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200"
+                        >
+                          View Tree
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
       
       {/* Visual tree view - Tree with relationship connections */}
@@ -248,10 +315,7 @@ const FamilyTree = () => {
         <VisualFamilyTree />
       )}
       
-      {/* Comprehensive tree view - All members and relationships */}
-      {viewType === 'comprehensive' && (
-        <ComprehensiveFamilyTree />
-      )}
+      {/* Note: Comprehensive view is handled above with the complete tree data */}
       
       {/* Enhanced tree view */}
       {viewType === 'enhanced' && (
@@ -259,7 +323,7 @@ const FamilyTree = () => {
       )}
       
       {/* Modern tree view */}
-      {viewType === 'modern' && (
+      {viewType === 'modern' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
         <div className="mb-8 p-4 border rounded bg-white overflow-x-auto">
           <h3 className="text-xl mb-2">Modern Family Tree</h3>
           <p className="text-sm text-gray-500 mb-4">Click on any name to view their details. Click on a node to expand/collapse.</p>
@@ -270,7 +334,7 @@ const FamilyTree = () => {
       )}
       
       {/* Card tree view */}
-      {viewType === 'card' && (
+      {viewType === 'card' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
         <div className="mb-8 p-4 border rounded bg-white">
           <h3 className="text-xl mb-2">Card-based Family Tree</h3>
           <p className="text-sm text-gray-500 mb-4">Click on any name to view their details. Click on a node to expand/collapse.</p>
@@ -281,7 +345,7 @@ const FamilyTree = () => {
       )}
       
       {/* Horizontal graphical tree view */}
-      {viewType === 'horizontal' && (
+      {viewType === 'horizontal' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
         <div className="mb-8 p-4 border rounded bg-white overflow-x-auto">
           <h3 className="text-xl mb-2">Horizontal Family Tree</h3>
           <p className="text-sm text-gray-500 mb-4">Click on any name to view their details. Click on a node to expand/collapse.</p>
@@ -292,7 +356,7 @@ const FamilyTree = () => {
       )}
       
       {/* Vertical tree view */}
-      {viewType === 'vertical' && (
+      {viewType === 'vertical' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
         <div className="mb-8 p-4 border rounded bg-white">
           <h3 className="text-xl mb-2">Vertical Family Tree</h3>
           <p className="text-sm text-gray-500 mb-4">Click on any name to view their details. Click on a node to expand/collapse.</p>
@@ -303,13 +367,30 @@ const FamilyTree = () => {
       )}
       
       {/* Simple text-based tree view */}
-      {viewType === 'text' && (
+      {viewType === 'text' && treeData && (treeData.serNo || treeData.attributes?.serNo) && (
         <div className="mb-8 p-4 border rounded bg-white">
           <h3 className="text-xl mb-2">Text-based Family Tree</h3>
           <p className="text-sm text-gray-500 mb-4">Click on any name to view their details</p>
           <div id="text-tree-container">
             <SimpleTreeView data={treeData} />
           </div>
+        </div>
+      )}
+      
+      {/* Error message for incompatible view types */}
+      {(viewType === 'modern' || viewType === 'card' || viewType === 'horizontal' || viewType === 'vertical' || viewType === 'text') && 
+       (!treeData || (!treeData.serNo && !treeData.attributes?.serNo)) && (
+        <div className="mb-8 p-4 border rounded bg-yellow-50 border-yellow-200">
+          <h3 className="text-lg font-medium text-yellow-800 mb-2">View Not Available</h3>
+          <p className="text-yellow-700 mb-4">
+            This view type requires individual tree data. Please try the "All Members" view instead, or select a specific family member first.
+          </p>
+          <button
+            onClick={() => setViewType('comprehensive')}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+          >
+            Switch to All Members View
+          </button>
         </div>
       )}
     </div>
