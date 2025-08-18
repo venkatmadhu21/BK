@@ -22,6 +22,60 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 
+// Small component to fetch and show relations using relationRules-backed endpoint
+const DynamicRelations = ({ serNo, onNavigate }) => {
+  const [relations, setRelations] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get(`/api/family/dynamic-relations/${serNo}`);
+        if (!cancelled) setRelations(res.data || []);
+      } catch (e) {
+        if (!cancelled) setError(e?.response?.data?.message || e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    if (serNo) run();
+    return () => { cancelled = true; };
+  }, [serNo]);
+
+  if (loading) return <p className="text-gray-500 text-sm">Loading relations…</p>;
+  if (error) return <p className="text-red-500 text-sm">{error}</p>;
+  if (!relations || relations.length === 0) return <p className="text-gray-500 text-sm">No relations found</p>;
+
+  return (
+    <div className="max-h-72 overflow-y-auto divide-y">
+      {relations.map((r, idx) => {
+        const name = [r.related?.firstName, r.related?.middleName, r.related?.lastName].filter(Boolean).join(' ');
+        const label = r.relationMarathi ? `${r.relationEnglish} [${r.relationMarathi}]` : r.relationEnglish;
+        return (
+          <div
+            key={`${r.relationEnglish}-${r.related?.serNo}-${idx}`}
+            onClick={() => onNavigate && onNavigate(r.related?.serNo)}
+            className="block py-2 hover:bg-gray-50 rounded cursor-pointer"
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-sm">
+                <span className="font-medium">{label}</span>
+                <span className="text-gray-500"> → </span>
+                <span>{name}</span>
+              </span>
+              <span className="text-xs text-gray-400">#{r.related?.serNo}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const ComprehensiveFamilyTree = () => {
   const [allMembers, setAllMembers] = useState([]);
   const [allRelationships, setAllRelationships] = useState([]);
@@ -29,7 +83,7 @@ const ComprehensiveFamilyTree = () => {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('tree'); // 'tree', 'network', 'list'
   const [selectedMember, setSelectedMember] = useState(null);
-  const [expandedLevels, setExpandedLevels] = useState(new Set([1, 2]));
+  const [expandedLevels, setExpandedLevels] = useState(new Set([1, 2, 3, 4]));
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRelationType, setSelectedRelationType] = useState('');
   const [showRelationships, setShowRelationships] = useState(true);
@@ -45,6 +99,10 @@ const ComprehensiveFamilyTree = () => {
           api.get('/api/family/members-new'),
           api.get('/api/family/all-relationships')
         ]);
+        
+
+        
+        // Data loaded successfully
         
         setAllMembers(membersRes.data);
         setAllRelationships(relationshipsRes.data);
@@ -73,6 +131,8 @@ const ComprehensiveFamilyTree = () => {
     acc[level].push(member);
     return acc;
   }, {});
+  
+
 
   // Get relationships for a specific member
   const getMemberRelationships = (memberSerNo) => {
@@ -86,13 +146,23 @@ const ComprehensiveFamilyTree = () => {
 
   // Filter members based on search and filters
   const filteredMembers = allMembers.filter(member => {
+    // Search filter
     const matchesSearch = !searchTerm || 
       member.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.serNo.toString().includes(searchTerm) ||
       member.vansh?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesSearch;
+    // Relationship filter - only apply if a relationship type is actually selected
+    const matchesRelationshipFilter = !selectedRelationType || selectedRelationType === '' ||
+      allRelationships.some(rel => 
+        rel.relation === selectedRelationType && 
+        (rel.fromSerNo === member.serNo || rel.toSerNo === member.serNo)
+      );
+    
+    return matchesSearch && matchesRelationshipFilter;
   });
+  
+  // Debug info available in console if needed
 
   // Filter relationships based on selected type
   const filteredRelationships = selectedRelationType 
@@ -354,7 +424,7 @@ const ComprehensiveFamilyTree = () => {
             </select>
           </div>
 
-          {/* Show Relationships Toggle */}
+          {/* Show Relationships Toggle and Clear Filters */}
           <div className="flex items-center space-x-4">
             <label className="flex items-center">
               <input
@@ -365,6 +435,28 @@ const ComprehensiveFamilyTree = () => {
               />
               <span className="text-sm">Show Relationships</span>
             </label>
+            
+            {(searchTerm || selectedRelationType) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedRelationType('');
+                }}
+                className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                const allLevels = new Set(levels.map(l => parseInt(l)));
+                setExpandedLevels(allLevels);
+              }}
+              className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-lg transition-colors"
+            >
+              Expand All
+            </button>
           </div>
         </div>
       </div>
@@ -372,12 +464,15 @@ const ComprehensiveFamilyTree = () => {
       {/* Family Tree by Levels */}
       <div className="space-y-6">
         {levels.map(level => {
-          const levelMembers = membersByLevel[level].filter(member => 
+          const levelMembers = membersByLevel[level] || [];
+          const filteredLevelMembers = levelMembers.filter(member => 
             filteredMembers.includes(member)
           );
           const isExpanded = expandedLevels.has(parseInt(level));
 
-          if (levelMembers.length === 0) return null;
+          // Show level even if no filtered members, but indicate it's filtered
+          const showLevel = levelMembers.length > 0;
+          if (!showLevel) return null;
 
           return (
             <div key={level} className="bg-white rounded-lg shadow-md">
@@ -393,7 +488,10 @@ const ComprehensiveFamilyTree = () => {
                     <ArrowRight size={20} className="mr-2 text-gray-600" />
                   )}
                   <h3 className="text-xl font-bold text-gray-800">
-                    Generation {level} ({levelMembers.length} members)
+                    Generation {level} 
+                    <span className="ml-2 text-sm font-normal text-gray-600">
+                      ({filteredLevelMembers.length} of {levelMembers.length} members)
+                    </span>
                   </h3>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -404,33 +502,56 @@ const ComprehensiveFamilyTree = () => {
               {/* Level Members */}
               {isExpanded && (
                 <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {levelMembers.map(member => {
-                      // Find parent member from previous level
-                      const parentMember = parseInt(level) > 1 ? 
-                        allMembers.find(m => 
-                          m.level === parseInt(level) - 1 && 
-                          allRelationships.some(rel => 
-                            (rel.fromSerNo === m.serNo && rel.toSerNo === member.serNo) ||
-                            (rel.fromSerNo === member.serNo && rel.toSerNo === m.serNo)
-                          )
-                        ) : null;
-                      
-                      return (
-                        <MemberCard 
-                          key={member.serNo} 
-                          member={member} 
-                          showRelationships={showRelationships}
-                          parentMember={parentMember}
-                        />
-                      );
-                    })}
-                  </div>
+                  {filteredLevelMembers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No members match current filters</p>
+                      <p className="text-sm mt-1">
+                        {levelMembers.length} members in this generation (hidden by filters)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {filteredLevelMembers.map(member => {
+                        // Find parent member from previous level
+                        const parentMember = parseInt(level) > 1 ? 
+                          allMembers.find(m => 
+                            m.level === parseInt(level) - 1 && 
+                            allRelationships.some(rel => 
+                              (rel.fromSerNo === m.serNo && rel.toSerNo === member.serNo) ||
+                              (rel.fromSerNo === member.serNo && rel.toSerNo === m.serNo)
+                            )
+                          ) : null;
+                        
+                        return (
+                          <MemberCard 
+                            key={member.serNo} 
+                            member={member} 
+                            showRelationships={showRelationships}
+                            parentMember={parentMember}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           );
         })}
+        
+        {/* Show message if no levels found */}
+        {levels.length === 0 && (
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <Users size={48} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Family Members Found</h3>
+            <p className="text-gray-500">
+              {allMembers.length === 0 
+                ? "No family members have been loaded yet."
+                : "No members match your current search criteria."
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Selected Member Details Modal */}
@@ -458,37 +579,18 @@ const ComprehensiveFamilyTree = () => {
               </div>
             </div>
               
-            {/* Member relationships */}
+            {/* Member relations from relationRules (dynamic) */}
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-700">All Relationships ({getMemberRelationships(selectedMember.serNo).length}):</h4>
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {getMemberRelationships(selectedMember.serNo).map((rel, idx) => {
-                  const otherMember = allMembers.find(m => 
-                    m.serNo === (rel.fromSerNo === selectedMember.serNo ? rel.toSerNo : rel.fromSerNo)
-                  );
-                  return (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium">
-                          {rel.relation}
-                        </span>
-                        {rel.relationMarathi && (
-                          <span className="ml-2 text-sm text-gray-600">({rel.relationMarathi})</span>
-                        )}
-                      </div>
-                      {otherMember && (
-                        <Link 
-                          to={`/family/member/${otherMember.serNo}`}
-                          onClick={() => setSelectedMember(null)}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          #{otherMember.serNo} {otherMember.fullName}
-                        </Link>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <h4 className="text-lg font-semibold text-gray-700">Relations</h4>
+              <DynamicRelations 
+                serNo={selectedMember.serNo} 
+                onNavigate={(newSerNo) => {
+                  const newMember = allMembers.find(m => m.serNo === newSerNo);
+                  if (newMember) {
+                    setSelectedMember(newMember);
+                  }
+                }} 
+              />
             </div>
           </div>
         )}

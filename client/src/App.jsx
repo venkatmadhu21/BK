@@ -43,6 +43,9 @@ import ApiTestPage from './pages/ApiTestPage';
 import RawDataPage from './pages/RawDataPage';
 import NewFeaturesShowcase from './pages/NewFeaturesShowcase';
 import RelationshipsPage from './pages/RelationshipsPage';
+import AdminRelationsPage from './pages/AdminRelationsPage';
+import RelationshipTestPage from './pages/RelationshipTestPage';
+import ComprehensiveFamilyTree from './components/family/ComprehensiveFamilyTree';
 
 function App() {
   return (
@@ -134,6 +137,13 @@ function App() {
               </main>
             } />
             
+            {/* Comprehensive Family Tree */}
+            <Route path="/family/comprehensive" element={
+              <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
+                <ComprehensiveFamilyTree />
+              </main>
+            } />
+            
             {/* Seed Data Page (for development only) */}
             <Route path="/seed" element={
               <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
@@ -166,6 +176,20 @@ function App() {
             <Route path="/relationships" element={
               <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
                 <RelationshipsPage />
+              </main>
+            } />
+            
+            {/* Admin Relations Page */}
+            <Route path="/admin/relations" element={
+              <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
+                <AdminRelationsPage />
+              </main>
+            } />
+            
+            {/* Relationship Test Page */}
+            <Route path="/test/relations" element={
+              <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
+                <RelationshipTestPage />
               </main>
             } />
             <Route path="/profile" element={
