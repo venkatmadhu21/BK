@@ -45,13 +45,22 @@ const TreeNode = ({ node }) => {
               }}
             />
           </div>
-          <Link to={`/family/member/${node.attributes.serNo}`} className="node-name">
-            {node.name}
-          </Link>
+          <div className="node-couple">
+            <Link to={`/family/member/${node.attributes.serNo}`} className="node-name">
+              {node.name}
+            </Link>
+            {node.spouse && (
+              <>
+                <span className="couple-sep">&nbsp;&amp;&nbsp;</span>
+                <Link to={`/family/member/${node.spouse.serNo}`} className="node-name spouse-name">
+                  {node.spouse.fullName}
+                </Link>
+              </>
+            )}
+          </div>
           <div className="node-details">
             <span className="node-id">#{node.attributes.serNo}</span>
             {node.attributes.vansh && <span className="node-vansh">{node.attributes.vansh}</span>}
-            {node.attributes.spouse && <span className="node-spouse">Spouse: {node.attributes.spouse}</span>}
           </div>
           {hasChildren && (
             <div className="expand-icon">{expanded ? '−' : '+'}</div>

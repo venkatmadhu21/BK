@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, User } from 'lucide-react';
 import './CardFamilyTree.css';
-
 const CardFamilyTree = ({ data }) => {
   if (!data) return null;
-  
   return (
     <div className="card-tree-container">
       <CardTreeNode node={data} level={0} />

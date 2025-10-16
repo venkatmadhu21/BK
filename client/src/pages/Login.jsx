@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const Login = () => {
-  const { login, isAuthenticated, error, clearErrors } = useAuth();
+  const { login, isAuthenticated, error, clearErrors, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   
@@ -14,17 +14,26 @@ const Login = () => {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Redirect based on role if available
+      const stored = localStorage.getItem('token') || sessionStorage.getItem('token');
+      // We already have user in context; rely on that
+      const role = (typeof window !== 'undefined') ? JSON.parse(JSON.stringify((() => {
+        try { return JSON.parse(sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user') || 'null'); } catch { return null; }
+      })()))?.role : null;
+      if (role === 'admin') {
+        navigate('/admin');
+      } else if (role === 'dataentry') {
+        navigate('/data-entry');
+      } else {
+        navigate('/dashboard');
+      }
     }
-    
-    return () => {
-      clearErrors();
-    };
-  }, [isAuthenticated, navigate, clearErrors]);
+  }, [isAuthenticated, navigate]);
 
   const { email, password } = formData;
 
@@ -36,7 +45,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    const result = await login({ email, password });
+    const result = await login({ email, password }, rememberMe);
     
     if (result.success) {
       navigate('/dashboard');
@@ -117,10 +126,32 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Remember me */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <span>Remember me</span>
+            </label>
+          </div>
+
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-sm text-red-600">{error}</p>
+              <div className="flex items-start justify-between">
+                <p className="text-sm text-red-600">{error}</p>
+                <button
+                  type="button"
+                  onClick={clearErrors}
+                  className="text-xs text-red-700 hover:text-red-800 underline ml-3"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           )}
 

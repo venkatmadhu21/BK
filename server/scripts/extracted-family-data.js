@@ -163,10 +163,6 @@ const familyData = [
     "gender": "Female",
     "serNo": 19,
     "sonDaughterCount": 1,
-    "spouse": {
-      "name": "Husband Of Vishaka V Marathe",
-      "serNo": 20
-    },
     "fatherSerNo": 15,
     "motherSerNo": 16,
     "childrenSerNos": [],

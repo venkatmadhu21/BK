@@ -54,9 +54,16 @@ const UserSchema = new mongoose.Schema({
     enum: ['Single', 'Married', 'Divorced', 'Widowed'],
     default: 'Single'
   },
+  // Backward-compatible admin flag
   isAdmin: {
     type: Boolean,
     default: false
+  },
+  // Role-based access control
+  role: {
+    type: String,
+    enum: ['admin', 'dataentry', 'user'],
+    default: 'user'
   },
   isActive: {
     type: Boolean,
@@ -64,7 +71,7 @@ const UserSchema = new mongoose.Schema({
   },
   familyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'FamilyMember'
+    ref: 'Member'
   }
 }, {
   timestamps: true

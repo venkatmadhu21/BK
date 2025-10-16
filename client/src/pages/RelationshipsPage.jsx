@@ -28,7 +28,7 @@ const RelationshipsPage = () => {
         setLoading(true);
         const [relationshipsRes, membersRes] = await Promise.all([
           api.get('/api/family/all-relationships'),
-          api.get('/api/family/members-new')
+          api.get('/api/family/members')
         ]);
         
         setRelationships(relationshipsRes.data);

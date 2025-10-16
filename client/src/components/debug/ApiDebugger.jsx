@@ -8,7 +8,7 @@ const ApiDebugger = () => {
   useEffect(() => {
     const testApis = async () => {
       const tests = [
-        { name: 'Members API', url: '/api/family/members-new' },
+        { name: 'Members API', url: '/api/family/members' },
         { name: 'Relations API (SerNo 3)', url: '/api/family/dynamic-relations/3' },
         { name: 'All Relationships', url: '/api/family/all-relationships' }
       ];

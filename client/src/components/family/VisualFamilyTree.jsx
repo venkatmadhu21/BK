@@ -34,7 +34,7 @@ const VisualFamilyTree = () => {
         setLoading(true);
         
         const [membersRes, relationshipsRes] = await Promise.all([
-          api.get('/api/family/members-new'),
+          api.get('/api/family/members'),
           api.get('/api/family/all-relationships')
         ]);
         
@@ -96,13 +96,14 @@ const VisualFamilyTree = () => {
   // Filter members based on search
   const filteredMembers = allMembers.filter(member => {
     if (!searchTerm) return true;
-    return member.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const legacyName = member.name || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`.trim();
+    return legacyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
            member.serNo.toString().includes(searchTerm) ||
            member.vansh?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const MemberNode = ({ member, level }) => {
-    const memberName = member.fullName || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`.trim();
+    const memberName = member.name || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`.trim();
     const isSelected = selectedMember?.serNo === member.serNo;
     const memberRelationships = getMemberRelationships(member.serNo);
     

@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
+const getStoredToken = () =>
+  (typeof window !== 'undefined' && (localStorage.getItem('token') || sessionStorage.getItem('token'))) || null;
+
 const AuthContext = createContext();
 
 const initialState = {
-  token: localStorage.getItem('token'),
+  token: getStoredToken(),
   isAuthenticated: false,
   loading: true,
   user: null,
@@ -22,8 +25,25 @@ const authReducer = (state, action) => {
         error: null
       };
     case 'REGISTER_SUCCESS':
-    case 'LOGIN_SUCCESS':
-      localStorage.setItem('token', action.payload.token);
+    case 'LOGIN_SUCCESS': {
+      // Clear existing tokens, then store based on remember flag (defaults to session)
+      try {
+        sessionStorage.removeItem('token');
+        localStorage.removeItem('token');
+      } catch {}
+      if (action.remember) {
+        localStorage.setItem('token', action.payload.token);
+      } else {
+        sessionStorage.setItem('token', action.payload.token);
+      }
+      try {
+        const u = JSON.stringify(action.payload.user);
+        if (action.remember) {
+          localStorage.setItem('auth_user', u);
+        } else {
+          sessionStorage.setItem('auth_user', u);
+        }
+      } catch {}
       return {
         ...state,
         token: action.payload.token,
@@ -32,11 +52,15 @@ const authReducer = (state, action) => {
         user: action.payload.user,
         error: null
       };
+    }
     case 'AUTH_ERROR':
     case 'LOGIN_FAIL':
     case 'REGISTER_FAIL':
     case 'LOGOUT':
-      localStorage.removeItem('token');
+      try {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+      } catch {}
       return {
         ...state,
         token: null,
@@ -74,8 +98,9 @@ export const AuthProvider = ({ children }) => {
 
   // Load user
   const loadUser = async () => {
-    if (localStorage.token) {
-      setAuthToken(localStorage.token);
+    const token = getStoredToken();
+    if (token) {
+      setAuthToken(token);
     }
 
     try {
@@ -115,14 +140,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login user
-  const login = async (formData) => {
+  const login = async (formData, remember = false) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const res = await axios.post('/api/auth/login', formData);
       
       dispatch({
         type: 'LOGIN_SUCCESS',
-        payload: res.data
+        payload: res.data,
+        remember
       });
 
       return { success: true };
@@ -147,12 +173,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (state.token) {
-      setAuthToken(state.token);
+    // Only run once on mount. If a token exists in either storage, set header and load user.
+    const token = (typeof window !== 'undefined') && (localStorage.getItem('token') || sessionStorage.getItem('token'));
+    if (token) {
+      setAuthToken(token);
       loadUser();
     } else {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

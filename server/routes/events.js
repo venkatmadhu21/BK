@@ -25,7 +25,7 @@ router.get('/', auth, async (req, res) => {
       .populate('organizer', 'firstName lastName profilePicture')
       .populate('coOrganizers', 'firstName lastName profilePicture')
       .populate('attendees.user', 'firstName lastName profilePicture')
-      .sort({ startDate: 1 })
+      .sort({ startDate: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
 

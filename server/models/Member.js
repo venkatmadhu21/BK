@@ -69,10 +69,21 @@ const MemberSchema = new mongoose.Schema({
   Bio: {
     type: String,
     default: ''
+  },
+  isAlive: {
+    type: Boolean,
+    default: true
+  },
+  maritalInfo: {
+    married: { type: Boolean, default: false },
+    marriageDate: { type: String, default: null },
+    divorced: { type: Boolean, default: false },
+    widowed: { type: Boolean, default: false },
+    remarried: { type: Boolean, default: false }
   }
 }, {
   timestamps: true,
-  collection: 'members' // Explicitly specify the collection name
+  collection: 'members'
 });
 
 // Virtual for full name

@@ -25,8 +25,8 @@ const NewFeaturesShowcase = () => {
   useEffect(() => {
     const fetchShowcaseData = async () => {
       try {
-        // Fetch members
-        const membersRes = await api.get('/api/family/members-new');
+        // Fetch members (original collection)
+        const membersRes = await api.get('/api/family/members');
         const members = membersRes.data;
         
         // Fetch relationships

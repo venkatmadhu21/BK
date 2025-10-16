@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const FamilyMember = require('../models/FamilyMember');
+const Member = require('../models/Member');
 require('dotenv').config({ path: '../.env' });
 
 // Import the family data from the seed route
@@ -19,15 +19,15 @@ const seedDB = async () => {
     console.log('MongoDB Connected Successfully');
     
     // Clear existing data
-    await FamilyMember.deleteMany({});
+    await Member.deleteMany({});
     console.log('Cleared existing family members');
 
     // Insert new data
-    await FamilyMember.insertMany(familyData);
+    await Member.insertMany(familyData);
     console.log(`Added ${familyData.length} family members to the database`);
     
     // Verify the data was inserted
-    const count = await FamilyMember.countDocuments();
+    const count = await Member.countDocuments();
     console.log(`Number of family members in the database: ${count}`);
     
   } catch (error) {

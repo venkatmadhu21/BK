@@ -92,5 +92,33 @@
     "backButton": "Back to Home",
     "content": "Yogeshwari Devi of Ambajogai in Marathwada is the family deity (Kuladevi) of most Chitpavan Kokanastha Brahmins. Therefore, devotees come from all parts of Maharashtra for the darshan of this goddess.\n\nFor the Atrigotri Chitpavan Jogalekar families, this Dantasurmardini, Rajrajeshwari Devi is their special powerful Kulaswamini. The establishment of this Shri Yogeshwari Devi temple is believed to be about one and a half thousand years old.\n\nThe north-facing temple of Shri Yogeshwari Devi, built in Hemadpanti architecture, is located on the western bank of the Jayanti river flowing through the center of Ambajogai city.\n\nThe annual festivals of Shri Yogeshwar Devi are celebrated in the months of Ashwin and Margashirsha. The Shatchandi Havan is completed at the confluence of Ashtami and Navami tithis. In the month of Margashirsha, Ghatasthapana takes place from Shuddha Saptami and the Shatchandi Yajna is completed on the full moon day.\n\nMargashirsha Purnima is the incarnation day of Shri Yogeshwari Devi. On this day, bhog is offered to the goddess.\n\nIt is believed that Jogalekar family members must have darshan of their Kulaswamini at least once in their lifetime. There is a tradition that couples should have darshan of the Kulaswamini after marriage.\n\nThose going to Ambajogai for darshan of Shri Yogeshwari Devi or for religious ceremonies should take help from the Kshetra Upadhyayas of this temple:\n\n1. Kshetra Upadhyaya Bhikaji Kashinath Pathakshastri\n2. Kshetra Upadhyaya Vasant Martand Ausekar-Pathak",
     "footerNote": "🙏 May Shri Yogeshwari Devi bless all devotees with peace, prosperity, and spiritual growth 🙏"
+  },
+  "vyadeshwar": {
+    "title": "Shree Vyadeshwar Temple, Guhagar",
+    "subtitle": "Ancient Temple of Lord Shiva in Ratnagiri District",
+    "location": "Guhagar, Ratnagiri District, Maharashtra",
+    "distance": "45 km from Chiplun",
+    "established": "Around 1200 AD (Temple: 200-250 years old)",
+    "description": "Shree Vyadeshwar Temple in Guhagar is located very close to the bus stand, and the Guhagar market is situated around it. Guhagar is a village in Ratnagiri district and is the headquarters of a taluka. Guhagar is about 45 kilometers away from Chiplun.\n\nAlthough Guhagar was founded around 1200 AD, Shri Vyadeshwar Temple is about 200/250 years old. The Shivalinga in the Vyadeshwar Temple is very ancient and self-sufficient.\n\nAfter Jamadagniputra Parashurama created Konkanbhoomi, many sages came and stayed in that area. Among them, Vyad Rishi founded it, hence it was called Vyadeshwar.\n\nThis temple has walls on all four sides and has entrances on the north, south and east. Although the temple faces east, the entrance facing south is mainly used.\n\nShri Vyadeshwar is the family head of most of the Chitpavan Konkanstha Brahmin families. This Vyadeshwar is the family head of many Joglekar families.\n\nThere is a Gak lake near the temple and there is also a temple of Vitthal-Rakhumai. There is open space in the temple premises and the temple is of the Panchayat system.\n\nSmall temples like Shri Surya, Shri Ganapati, Shri Ambika and Shri Lakshmi-Vishnu are located on all four sides of Shri Vyadeshwar temple. The temple's Upadhyaya helps the devotees in religious activities.\n\nA special festival is held here on Kartiki Gakdashila. There is a five-day Vyadeshwar festival in the month of Magh. Katha-kirtan programs are held during the festival. There is a palanquin procession.\n\nRudrabhishek is continuously performed on the Vyadeshwar temple during Chaturmas. A silver idol of Shiva is kept in the temple on the days of Ashadhi, Kartiki Gakdashi and Mahashivratri.\n\nMany devotees come to have darshan of Shri Vyadeshwar on Mahashivratri, Shravan and Kartik Mondays.",
+    "sections": {
+      "history": "History & Origin",
+      "architecture": "Temple Architecture",
+      "significance": "Religious Significance",
+      "festivals": "Festivals & Celebrations",
+      "visiting": "Visiting Information"
+    },
+    "historyText": "Founded by Vyad Rishi after Parashurama created Konkanbhoomi. The ancient self-sufficient Shivalinga makes this temple spiritually significant.",
+    "architectureText": "The temple has walls on all four sides with entrances on north, south, and east. Though east-facing, the south entrance is primarily used. Surrounded by smaller temples of various deities.",
+    "significanceText": "Shri Vyadeshwar serves as the family deity (Kuladevata) for most Chitpavan Konkanstha Brahmin families, especially many Joglekar families.",
+    "festivalsText": "Major celebrations include Kartiki Gakdashila festival, five-day Vyadeshwar festival in Magh month with Katha-kirtan programs and palanquin processions.",
+    "visitingText": "Located near Guhagar bus stand and market. Best visited during Mahashivratri, Shravan Mondays, and Kartik Mondays for special darshan.",
+    "backButton": "Back to Home",
+    "lordShiva": "Lord Shiva",
+    "vyadeshwarTemple": "Vyadeshwar Temple",
+    "quickInfo": "Quick Information",
+    "locationLabel": "Location",
+    "distanceLabel": "Distance",
+    "establishedLabel": "Established",
+    "templeDescription": "Temple Description"
   }
 }

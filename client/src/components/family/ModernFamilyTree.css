@@ -99,7 +99,7 @@
 }
 
 .node-name {
-  display: block;
+  display: inline-block;
   font-weight: 600;
   font-size: 1rem;
   color: rgba(0, 0, 0, 0.85);
@@ -112,16 +112,20 @@
   text-decoration: underline;
 }
 
-.node-spouse {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.65);
-  margin-bottom: 4px;
-  text-align: center;
+.node-couple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
-.spouse-label {
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.45);
+.couple-sep {
+  color: rgba(0,0,0,0.45);
+}
+
+.spouse-name {
+  opacity: 0.9;
 }
 
 .node-vansh {

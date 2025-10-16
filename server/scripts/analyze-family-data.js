@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const FamilyMember = require('../models/FamilyMember');
+const Member = require('../models/Member');
 
 // MongoDB connection
 const connectDB = async () => {
@@ -19,7 +19,7 @@ const analyzeData = async () => {
   try {
     await connectDB();
     
-    const allMembers = await FamilyMember.find().sort({ serNo: 1 });
+    const allMembers = await Member.find().sort({ serNo: 1 });
     console.log(`\nTotal family members: ${allMembers.length}`);
     
     // Create a map of existing serNos

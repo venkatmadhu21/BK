@@ -22,8 +22,8 @@ const FamilyListPage = () => {
     const fetchFamilyMembers = async () => {
       try {
         setLoading(true);
-        // Use the new API endpoint that uses members collection
-        const res = await api.get('/api/family/members-new');
+        // Use the original API endpoint that uses members collection
+        const res = await api.get('/api/family/members');
         
         // Extract unique levels and vanshes
         const uniqueLevels = [...new Set(res.data.map(member => member.level))].sort((a, b) => a - b);
@@ -34,7 +34,7 @@ const FamilyListPage = () => {
           total: res.data.length,
           male: res.data.filter(m => m.gender === 'Male').length,
           female: res.data.filter(m => m.gender === 'Female').length,
-          withSpouse: res.data.filter(m => m.spouseSerNo).length,
+          withSpouse: res.data.filter(m => m.spouse && m.spouse.serNo).length,
           withChildren: res.data.filter(m => m.childrenSerNos && m.childrenSerNos.length > 0).length,
           totalChildren: res.data.reduce((sum, m) => sum + (m.sonDaughterCount || 0), 0),
           byLevel: uniqueLevels.reduce((acc, level) => {
@@ -102,7 +102,7 @@ const FamilyListPage = () => {
     if (level) {
       try {
         setLoading(true);
-        const res = await api.get(`/api/family/members-by-level-new?level=${level}`);
+        const res = await api.get(`/api/family/members?level=${level}`);
         
         // Set a minimum loading time of 1 second for better UX
         setTimeout(() => {

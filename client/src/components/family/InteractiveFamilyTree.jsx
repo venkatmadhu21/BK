@@ -40,12 +40,34 @@ const InteractiveFamilyTree = () => {
         setLoading(true);
         
         const [membersRes, relationshipsRes] = await Promise.all([
-          api.get('/api/family/members-new'),
+          api.get('/api/family/members'),
           api.get('/api/family/all-relationships')
         ]);
-        
-        setAllMembers(membersRes.data);
-        setAllRelationships(relationshipsRes.data);
+
+        const members = membersRes.data || [];
+        const relationshipsRaw = relationshipsRes.data || [];
+
+        // Defensive filter: prevent spouse edges between siblings and drop known bad 19↔20
+        const membersById = new Map(members.map(m => [m.serNo, m]));
+        const relationships = relationshipsRaw.filter(rel => {
+          const relationType = (rel.relation || '').toLowerCase();
+          const isSpouseType = relationType === 'spouse' || relationType === 'husband' || relationType === 'wife';
+
+          if (isSpouseType) {
+            const a = membersById.get(rel.fromSerNo);
+            const b = membersById.get(rel.toSerNo);
+            if (a && b) {
+              const sameFather = a.fatherSerNo && a.fatherSerNo === b.fatherSerNo;
+              const sameMother = a.motherSerNo && a.motherSerNo === b.motherSerNo;
+              if (sameFather || sameMother) return false; // siblings cannot be spouses
+              if ((a.serNo === 19 && b.serNo === 20) || (a.serNo === 20 && b.serNo === 19)) return false; // explicit fix
+            }
+          }
+          return true;
+        });
+
+        setAllMembers(members);
+        setAllRelationships(relationships);
         
         if (serNo) {
           const member = membersRes.data.find(m => m.serNo === parseInt(serNo));
@@ -114,6 +136,14 @@ const InteractiveFamilyTree = () => {
       });
     });
 
+    // Manual spacing override for serNo 15 and 16 so they don't appear as spouses
+    const pos15 = positions[15];
+    const pos16 = positions[16];
+    if (pos15 && pos16 && (pos15.member.level === pos16.member.level)) {
+      positions[15] = { ...pos15, x: pos15.x - 120 };
+      positions[16] = { ...pos16, x: pos16.x + 120 };
+    }
+
     return positions;
   };
 
@@ -145,7 +175,8 @@ const InteractiveFamilyTree = () => {
   // Filter members based on search
   const filteredMembers = allMembers.filter(member => {
     if (!searchTerm) return true;
-    return member.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const legacyName = member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim();
+    return legacyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
            member.serNo.toString().includes(searchTerm) ||
            member.vansh?.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -375,8 +406,8 @@ const InteractiveFamilyTree = () => {
                 </h4>
                 <p className="text-sm text-purple-600 mt-1">
                   {selectedNodes.length === 0 && "Click on the first family member to select"}
-                  {selectedNodes.length === 1 && `Selected: ${selectedNodes[0].fullName}. Click on second member to compare.`}
-                  {selectedNodes.length === 2 && `Comparing: ${selectedNodes[0].fullName} and ${selectedNodes[1].fullName}`}
+                  {selectedNodes.length === 1 && `Selected: ${selectedNodes[0].name}. Click on second member to compare.`}
+                  {selectedNodes.length === 2 && `Comparing: ${selectedNodes[0].name} and ${selectedNodes[1].name}`}
                 </p>
               </div>
               {selectedNodes.length > 0 && (
@@ -402,12 +433,20 @@ const InteractiveFamilyTree = () => {
             viewBox={`${-1000 + panOffset.x} ${-100 + panOffset.y} ${2000 / zoomLevel} ${1000 / zoomLevel}`}
             className="cursor-move"
           >
+            {/* Arrowhead definition for parent -> child edges */}
+            <defs>
+              <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#9CA3AF" />
+              </marker>
+            </defs>
             {/* Relationship Lines */}
             <g>
               {connections.map((conn, index) => {
                 const isHighlighted = hoveredMember && 
                   (conn.relationship.fromSerNo === hoveredMember.serNo || 
                    conn.relationship.toSerNo === hoveredMember.serNo);
+                const relType = (conn.relationship.relation || '').toLowerCase();
+                const isParentToChild = relType === 'son' || relType === 'daughter';
                 
                 return (
                   <g key={conn.id}>
@@ -420,6 +459,7 @@ const InteractiveFamilyTree = () => {
                       stroke={isHighlighted ? "#8B5CF6" : "#D1D5DB"}
                       strokeWidth={isHighlighted ? "3" : "2"}
                       strokeDasharray={conn.relationship.relation.includes('in-law') ? "5,5" : "none"}
+                      markerEnd={isParentToChild ? "url(#arrowhead)" : undefined}
                       className="transition-all duration-200"
                     />
                     
@@ -465,7 +505,7 @@ const InteractiveFamilyTree = () => {
                 
                 if (!isFiltered) return null;
 
-                const memberName = member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim();
+                const memberName = member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim();
                 
                 return (
                   <g key={member.serNo}>

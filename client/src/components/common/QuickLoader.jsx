@@ -59,7 +59,7 @@ const QuickLoader = ({ children }) => {
     <>
       {children}
       {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-white/80 backdrop-blur-sm">
           <Loader size="large" message={loadingMessage} />
         </div>
       )}

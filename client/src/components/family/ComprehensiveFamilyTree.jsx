@@ -94,16 +94,13 @@ const ComprehensiveFamilyTree = () => {
       try {
         setLoading(true);
         
-        // Fetch all members and relationships
+        // Fetch all members and relationships (using Members collection)
         const [membersRes, relationshipsRes] = await Promise.all([
-          api.get('/api/family/members-new'),
-          api.get('/api/family/all-relationships')
+          api.get('/api/family/members'),
+          api.get('/api/family/relationships')
         ]);
         
-
-        
         // Data loaded successfully
-        
         setAllMembers(membersRes.data);
         setAllRelationships(relationshipsRes.data);
         

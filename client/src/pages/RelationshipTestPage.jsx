@@ -13,7 +13,7 @@ const RelationshipTestPage = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await api.get('/api/family/members-new');
+        const response = await api.get('/api/family/members');
         setMembers(response.data);
         console.log('Fetched members:', response.data.length);
       } catch (err) {

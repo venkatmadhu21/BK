@@ -62,36 +62,29 @@ const NavbarWithDropdown = () => {
     };
   }, []);
 
-  // Public navigation links (always visible)
-  const publicNavLinks = [
-    { path: '/', label: t('nav.home'), icon: Home },
-    { path: '/about', label: t('nav.family'), icon: Info },
-    { path: '/history', label: t('nav.history'), icon: BookOpen },
-    { path: '/news', label: t('nav.news'), icon: Newspaper },
-    { path: '/events', label: t('nav.events'), icon: Calendar },
-    { 
-      type: 'dropdown',
-      label: 'Family Tree',
-      icon: Users,
-      items: [
-        { path: '/family', label: 'View Tree', icon: Users },
-        { path: '/api-test', label: 'API Test', icon: Home },
-        { path: '/seed', label: 'Seed Data', icon: Home },
-        { path: '/raw-data', label: 'Raw Data', icon: Home }
-      ]
-    }
-  ];
+// Public navigation links (always visible)
+const publicNavLinks = [
+  { path: '/', label: t('nav.home'), icon: Home },
+  { path: '/about', label: t('nav.family'), icon: Info },
+  { path: '/history', label: t('nav.history'), icon: BookOpen },
+  { path: '/news', label: t('nav.news'), icon: Newspaper },
+  { path: '/events', label: t('nav.events'), icon: Calendar },
 
-  // Private navigation links (only when authenticated)
-  const privateNavLinks = [
-    { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/family-tree', label: 'Family Tree', icon: Users },
-  ];
+  // Replace Family Tree dropdown with a single button
+  { path: '/family', label: 'Family Tree', icon: Users },
+];
+
+// Private navigation links (only when authenticated)
+const privateNavLinks = [
+  { path: '/dashboard', label: 'Dashboard', icon: Home },
+];
 
   return (
-    <nav className="fixed top-2 xs:top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 w-[98%] xs:w-[96%] max-w-8xl" style={{zIndex: 9999}}>
-      <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 rounded-2xl xs:rounded-3xl sm:rounded-full shadow-2xl backdrop-blur-lg border border-orange-200/40 px-3 xs:px-4 sm:px-6 lg:px-8 py-1">
-        <div className="flex justify-between items-center py-1 xs:py-2">
+    <nav className="top-2 xs:top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 w-[98%] xs:w-[96%] max-w-8xl sticky md:fixed" style={{zIndex: 9999}}>
+      <div className="rounded-2xl xs:rounded-3xl sm:rounded-full shadow-2xl backdrop-blur-lg border border-orange-100/60 px-3 xs:px-4 sm:px-6 lg:px-8 py-1 hover:shadow-orange-200/50 transition-shadow duration-300 relative overflow-visible animate-navbar-gradient bg-gradient-to-r from-orange-100 via-orange-300 to-orange-200">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-100/20 via-transparent to-orange-100/20 rounded-2xl xs:rounded-3xl sm:rounded-full pointer-events-none"></div>
+        <div className="relative flex justify-between items-center py-1 xs:py-2" style={{ clipPath: 'none' }}>
           {/* Logo */}
           <button 
             onClick={() => {
@@ -100,80 +93,40 @@ const NavbarWithDropdown = () => {
             }}
             className="flex items-center space-x-2 xs:space-x-3 group"
           >
-            <div className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-orange-200 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-              <img 
-                src={ionBalImage} 
-                alt="Bal Krishna" 
+            <div className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-orange-300 shadow-lg group-hover:shadow-xl group-hover:shadow-orange-200/60 transition-all duration-300 group-hover:scale-105">
+              <img
+                src={ionBalImage}
+                alt="Bal Krishna"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="text-white">
-              <h1 className="text-sm xs:text-base sm:text-lg font-bold leading-tight">Bal Krishna Nivas</h1>
-              <p className="text-xs xs:text-sm text-orange-100 font-medium leading-tight">{t('home.subtitle')}</p>
+            <div className="text-gray-800">
+              <h1 className="text-sm xs:text-base sm:text-lg font-bold leading-tight text-orange-800">Bal Krishna Nivas</h1>
+              <p className="text-xs xs:text-sm text-orange-600 font-medium leading-tight">{t('home.subtitle')}</p>
             </div>
           </button>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2">
             {/* Public Links */}
-            {publicNavLinks.map((item, index) => 
-              item.type === 'dropdown' ? (
-                <div key={`dropdown-${index}`} className="relative" ref={treeDropdownRef}>
-                  <button
-                    onClick={() => setIsTreeDropdownOpen(!isTreeDropdownOpen)}
-                    className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium transition-all duration-300 
-                      text-white hover:text-orange-100 hover:bg-white/25 hover:shadow-md hover:scale-105
-                      ${isTreeDropdownOpen ? 'bg-white/25 text-orange-100 shadow-md scale-105' : ''}
-                    `}
-                  >
-                    <item.icon size={16} className="lg:w-[18px] lg:h-[18px]" />
-                    <span className="hidden xl:block">{item.label}</span>
-                    <span className="xl:hidden text-xs lg:text-sm">{item.label.split(' ')[0]}</span>
-                    <ChevronDown size={14} className={`transition-transform duration-300 ${isTreeDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {/* Dropdown Menu */}
-                  {isTreeDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg overflow-hidden z-50 w-48">
-                      {item.items.map((subItem) => (
-                        <Link
-                          key={subItem.path}
-                          to={subItem.path}
-                          onClick={() => {
-                            setIsTreeDropdownOpen(false);
-                            setIsMenuOpen(false);
-                          }}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-orange-50 transition-colors ${
-                            isActive(subItem.path) ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-700'
-                          }`}
-                        >
-                          <subItem.icon size={16} />
-                          <span>{subItem.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => {
-                    console.log('🔍 Link clicked:', item.path);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium transition-all duration-300 ${
-                    isActive(item.path)
-                      ? 'bg-white text-orange-600 shadow-lg transform scale-105'
-                      : 'text-white hover:text-orange-100 hover:bg-white/25 hover:shadow-md hover:scale-105'
-                  }`}
-                >
-                  <item.icon size={16} className="lg:w-[18px] lg:h-[18px]" />
-                  <span className="hidden xl:block">{item.label}</span>
-                  <span className="xl:hidden text-xs lg:text-sm">{item.label.split(' ')[0]}</span>
-                </Link>
-              )
-            )}
+            {publicNavLinks.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                }}
+                className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium transition-all duration-300 ${
+                  isActive(item.path)
+                    ? 'bg-white text-orange-700 shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:text-orange-800 hover:bg-orange-100/50 hover:shadow-md hover:scale-105'
+                }`}
+              >
+                <item.icon size={16} className="lg:w-[18px] lg:h-[18px]" />
+                <span className="hidden xl:block">{item.label}</span>
+                <span className="xl:hidden text-xs lg:text-sm">{item.label.split(' ')[0]}</span>
+              </Link>
+            ))}
 
             {/* Private Links (when authenticated) */}
             {isAuthenticated && privateNavLinks.map(({ path, label, icon: Icon }) => (
@@ -185,8 +138,8 @@ const NavbarWithDropdown = () => {
                 }}
                 className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium transition-all duration-300 ${
                   isActive(path)
-                    ? 'bg-white text-orange-600 shadow-lg transform scale-105'
-                    : 'text-white hover:text-orange-100 hover:bg-white/25 hover:shadow-md hover:scale-105'
+                    ? 'bg-white text-orange-700 shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:text-orange-800 hover:bg-orange-100/50 hover:shadow-md hover:scale-105'
                 }`}
               >
                 <Icon size={16} className="lg:w-[18px] lg:h-[18px]" />
@@ -199,7 +152,7 @@ const NavbarWithDropdown = () => {
             <div className="relative group ml-1 lg:ml-2" ref={languageDropdownRef}>
               <button
                 onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium text-white hover:bg-white/25 transition-all duration-300 hover:scale-105"
+                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium text-gray-700 hover:bg-orange-100/50 hover:text-orange-800 transition-all duration-300 hover:scale-105"
               >
                 <Globe size={16} className="lg:w-[18px] lg:h-[18px]" />
                 <span className="hidden xl:block">
@@ -238,15 +191,38 @@ const NavbarWithDropdown = () => {
             {/* User Menu (when authenticated) */}
             {isAuthenticated ? (
               <div className="relative group ml-1 lg:ml-2">
-                <button className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium text-white hover:bg-white/25 transition-all duration-300 hover:scale-105">
-                  <User size={16} className="lg:w-[18px] lg:h-[18px]" />
+                <button className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-sm lg:text-base font-medium text-gray-700 hover:bg-orange-100/50 hover:text-orange-800 transition-all duration-300 hover:scale-105">
+                  {user?.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt={`${user?.firstName || 'User'} avatar`}
+                      className="w-6 h-6 lg:w-7 lg:h-7 rounded-full object-cover ring-2 ring-orange-300/50"
+                    />
+                  ) : (
+                    <User size={16} className="lg:w-[18px] lg:h-[18px]" />
+                  )}
                   <span className="hidden xl:block">{user?.firstName}</span>
                 </button>
                 
-                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 border border-orange-200">
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[12000] border border-orange-200">
                   <div className="px-4 py-3 border-b border-orange-100">
-                    <p className="text-sm font-semibold text-gray-800">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <div className="flex items-center space-x-3">
+                      {user?.profilePicture ? (
+                        <img
+                          src={user.profilePicture}
+                          alt={`${user?.firstName || 'User'} avatar`}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center">
+                          <User size={16} />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                    </div>
                   </div>
                   <button
                     onClick={() => navigate('/profile')}
@@ -268,14 +244,14 @@ const NavbarWithDropdown = () => {
               <div className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2">
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 text-xs lg:text-sm font-medium text-white hover:text-orange-100 hover:bg-white/25 rounded-full transition-all duration-300 hover:scale-105"
+                  className="px-2 lg:px-3 xl:px-4 py-1 lg:py-1.5 text-xs lg:text-sm font-medium text-gray-700 hover:text-orange-800 hover:bg-orange-100/50 rounded-full transition-all duration-300 hover:scale-105"
                 >
                   <span className="hidden lg:block">{t('nav.signIn')}</span>
                   <span className="lg:hidden text-xs">{t('nav.signIn')}</span>
                 </button>
                 <button
                   onClick={() => navigate('/register')}
-                  className="px-2 lg:px-3 xl:px-4 xl:px-5 py-1 lg:py-1.5 bg-white text-orange-600 text-xs lg:text-sm font-medium rounded-full hover:bg-orange-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="px-2 lg:px-3 xl:px-4 xl:px-5 py-1 lg:py-1.5 bg-orange-500 text-white text-xs lg:text-sm font-medium rounded-full hover:bg-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <span className="hidden lg:block">{t('nav.joinFamily')}</span>
                   <span className="lg:hidden text-xs">Join</span>
@@ -287,7 +263,7 @@ const NavbarWithDropdown = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-1.5 xs:p-2 rounded-full text-white hover:bg-white/25 transition-all duration-300 hover:scale-110"
+            className="md:hidden p-1.5 xs:p-2 rounded-full text-gray-700 hover:bg-orange-100/50 hover:text-orange-800 transition-all duration-300 hover:scale-110"
           >
             {isMenuOpen ? <X size={18} className="xs:w-[22px] xs:h-[22px]" /> : <Menu size={18} className="xs:w-[22px] xs:h-[22px]" />}
           </button>
@@ -298,57 +274,23 @@ const NavbarWithDropdown = () => {
           <div className="md:hidden mt-2 xs:mt-3 sm:mt-4">
             <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl border border-orange-200 p-3 xs:p-4 space-y-1 xs:space-y-2 max-h-[80vh] overflow-y-auto">
               {/* Public Links */}
-              {publicNavLinks.map((item, index) => 
-                item.type === 'dropdown' ? (
-                  <div key={`mobile-dropdown-${index}`} className="space-y-1">
-                    {/* Dropdown Header */}
-                    <div 
-                      className="flex items-center justify-between px-3 xs:px-4 py-2 xs:py-2.5 rounded-lg text-sm xs:text-base font-medium bg-orange-50 text-orange-600"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <item.icon size={18} className="xs:w-[22px] xs:h-[22px]" />
-                        <span>{item.label}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Dropdown Items - Indented */}
-                    <div className="pl-4 space-y-1">
-                      {item.items.map((subItem) => (
-                        <Link
-                          key={subItem.path}
-                          to={subItem.path}
-                          onClick={() => setIsMenuOpen(false)}
-                          className={`flex items-center space-x-3 px-3 xs:px-4 py-2 xs:py-2.5 rounded-lg text-sm xs:text-base transition-all duration-300 ${
-                            isActive(subItem.path)
-                              ? 'bg-orange-100 text-orange-600 font-medium'
-                              : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
-                          }`}
-                        >
-                          <subItem.icon size={16} className="xs:w-[20px] xs:h-[20px]" />
-                          <span>{subItem.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => {
-                      console.log('🔍 Mobile Link clicked:', item.path);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`flex items-center space-x-3 px-3 xs:px-4 py-2 xs:py-2.5 rounded-lg text-sm xs:text-base font-medium transition-all duration-300 ${
-                      isActive(item.path)
-                        ? 'bg-orange-100 text-orange-600'
-                        : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
-                    }`}
-                  >
-                    <item.icon size={18} className="xs:w-[22px] xs:h-[22px]" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              )}
+              {publicNavLinks.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                  }}
+                  className={`flex items-center space-x-3 px-3 xs:px-4 py-2 xs:py-2.5 rounded-lg text-sm xs:text-base font-medium transition-all duration-300 ${
+                    isActive(item.path)
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-700'
+                  }`}
+                >
+                  <item.icon size={18} className="xs:w-[22px] xs:h-[22px]" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
 
               {/* Private Links (when authenticated) */}
               {isAuthenticated && (
@@ -363,8 +305,8 @@ const NavbarWithDropdown = () => {
                       }}
                       className={`w-full flex items-center space-x-3 px-3 xs:px-4 py-2 xs:py-2.5 rounded-lg text-sm xs:text-base font-medium transition-all duration-300 ${
                         isActive(path)
-                          ? 'bg-orange-100 text-orange-600'
-                          : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'text-gray-700 hover:bg-orange-50 hover:text-orange-700'
                       }`}
                     >
                       <Icon size={18} className="xs:w-[22px] xs:h-[22px]" />

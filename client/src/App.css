@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+/* Animated gradient for navbar: light orange to deep orange */
+@keyframes navbarGradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-navbar-gradient {
+  background-size: 200% 200%;
+  animation: navbarGradientAnimation 18s ease-in-out infinite;
+}

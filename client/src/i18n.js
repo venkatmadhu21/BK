@@ -98,6 +98,25 @@ const resources = {
         subtitle: 'Our family story, mission, and values',
         description: 'Learn about the foundation and purpose of our family community'
       },
+      // About BKN (EN)
+      aboutBKN: {
+        heading: 'BalKrishna Nivas',
+        subheading: 'Hyderabad, Kachiguda — Heritage and Legacy',
+        intro1: 'Dr. Shankarrao Balwant Gogte established his medical practice in Hyderabad, the capital of the Nizam state. In his short life (1892–1935), he became one of the leading physicians of the state.',
+        intro2: 'Between 1931–33, he purchased about 1,200 square yards of land at Kachiguda and built a haveli. In 1935, the building was named “BalKrishna Nivas” after his son.',
+        features: 'The two-storey bungalow featured underground fuel storage, two basements, a small 5-room house in the backyard, a garage, four clinic rooms by the street, a tulsi vrindavan at the back, and a fountain pond in the front courtyard.',
+        family: 'After his demise in 1935, his wife Parvatibai courageously nurtured one son and five daughters through a delicate phase of life and the transition from Nizam rule to the Indian state, while maintaining strong ties with the Gogte and Bhide families.',
+        care: 'She brought relatives to live at BalKrishna Nivas and supported them through hardships — including her brother Vasudev Bhide after he lost his job.',
+        legacy: 'Later, their son BalKrishna (PhD in Geology) carried forward the traditions. Today, the values of BalKrishna Nivas are carried forward by Shri Neel Gogte (Founder, Keshav Memorial Group of Colleges) and Mrs. Manisha Gogte (Founder, Telangana State Dyslexia Association).',
+        changes: 'Over time, the backyard house became a lawn area, the clinic section at the front was sold, three basements were sealed, car parking was added in the front yard, and roofing was added to protect the old structure from moisture and rain.',
+        galleryTitle: 'Historic Gallery',
+        galleryCaption2: 'BalKrishna Nivas — Facade (c. mid 20th century)',
+        galleryCaption3: 'Heritage details and family memories',
+        galleryCaption4: 'Legacy preserved with love and devotion',
+        galleryCaption5: 'Documents and keepsakes of the era',
+        timelineTitle: 'A Journey Through Time',
+        cta: 'Back to Home'
+      },
       // History page
       history: {
         title: 'Family History',
@@ -324,6 +343,25 @@ const resources = {
         subtitle: 'आमची कौटुंबिक कथा, उद्दिष्ट आणि मूल्ये',
         description: 'आमच्या कौटुंबिक समुदायाचा पाया आणि हेतू जाणून घ्या'
       },
+      // About BKN (MR)
+      aboutBKN: {
+        heading: 'बाळकृष्ण निवास',
+        subheading: 'हैदराबाद, काचीगुडा — वारसा आणि परंपरा',
+        intro1: 'डॉ. शंकरराव बळवंत गोगटे यांनी निजाम राज्याची राजधानी हैदराबाद येथे त्यांचा वैद्यकीय दवाखाना स्थापन केला. त्यांच्या अल्पायुष्यात (१८९२–१९३५) ते निजाम राज्यातील आघाडीच्या डॉक्टरांपैकी एक बनले.',
+        intro2: '१९३१–३३ दरम्यान काचीगुडा येथे सुमारे १२०० चौरस यार्ड जागा खरेदी करून त्यांनी एक हवेली उभारली. १९३५ मध्ये त्यांच्या पुत्राच्या नावावर या इमारतीला “बाळकृष्ण निवास” असे नाव देण्यात आले.',
+        features: 'या दोन मजली बंगल्यात भूमिगत इंधन साठवण, दोन तळघर, मागे ५ खोल्यांचे घर, गॅरेज, रस्त्यालगत क्लिनिकसाठी ४ खोल्या, मागील आवारात तुळशीवृंदावन आणि समोरील अंगणात कारंजे असलेले तळे अशी वैशिष्ट्ये होती.',
+        family: '१९३५ मध्ये त्यांच्या निधनानंतर, पत्नी पार्वतीबाईंनी आयुष्यातील नाजूक टप्प्यात आणि निजामशाहीपासून भारतीय राज्यात संक्रमणाच्या काळात एक मुलगा आणि पाच मुलींना उत्तम संस्कार देऊन वाढवले आणि गोगटे व भिडे कुटुंबियांसोबत मजबूत नाती जपली.',
+        care: 'तिने नातेवाईकांना बाळकृष्ण निवासात राहण्यासाठी आणले आणि त्यांच्या कठीण प्रसंगात साथ दिली — तिच्या भावाला वासुदेव भिडे यालाही नोकरी गेल्यावर आधार दिला.',
+        legacy: 'नंतर त्यांचा मुलगा बाळकृष्ण (भूशास्त्रात डॉक्टरेट) यांनी घराची परंपरा पुढे नेली. आज या घराच्या मूल्यांना श्री. नील गोगटे (केशव मेमोरियल ग्रुप ऑफ कॉलेजेसचे संस्थापक) आणि श्रीमती मनीषा गोगटे (तेलंगाणा स्टेट डिस्लेक्सिया असोसिएशनच्या संस्थापिका) पुढे नेत आहेत.',
+        changes: 'काळानुसार मागील घर लॉनमध्ये रूपांतरित झाले, समोरील क्लिनिकचा भाग विकला गेला, तीन तळघर बुजवली गेली, समोरील अंगणात पार्किंगची सोय झाली आणि जुन्या वास्तूचे संरक्षण करण्यासाठी छप्पर घालण्यात आले.',
+        galleryTitle: 'ऐतिहासिक गॅलरी',
+        galleryCaption2: 'बाळकृष्ण निवास — समोरील दर्शनी भाग (इ. स. मध्य २०वे शतक)',
+        galleryCaption3: 'वारशाचे तपशील आणि कौटुंबिक आठवणी',
+        galleryCaption4: 'प्रेमाने आणि जतनाने टिकवलेली परंपरा',
+        galleryCaption5: 'त्या काळातील दस्तऐवज आणि स्मृतिचिन्हे',
+        timelineTitle: 'काळाचा प्रवास',
+        cta: 'मुख्यपृष्ठावर परत'
+      },
       // History page - मराठी
       history: {
         title: 'कौटुंबिक इतिहास',
@@ -350,7 +388,7 @@ const resources = {
         milestone: 'मैलस्तंभ',
         celebration: 'उत्सव',
         by: 'द्वारा',
-        views: 'दर्शने',
+        views: 'पाहिले',
         priority: 'प्राधान्य',
         high: 'उच्च',
         medium: 'मध्यम',

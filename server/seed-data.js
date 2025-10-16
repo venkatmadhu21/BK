@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Import the FamilyMember model
-const FamilyMember = require('./models/FamilyMember');
+// Import the Member model
+const Member = require('./models/Member');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/bal-krishna-nivas', {
@@ -193,7 +193,6 @@ const familyData = [
     gender: "Male",
     serNo: 15,
     sonDaughterCount: 2,
-    spouse: { name: "Wife Of Dattatreya M Gogte", serNo: 16 },
     fatherSerNo: 5,
     motherSerNo: 6,
     level: 3,
@@ -205,7 +204,6 @@ const familyData = [
     gender: "Female",
     serNo: 16,
     sonDaughterCount: 2,
-    spouse: { name: "Dattatreya M Gogte", serNo: 15 },
     level: 3,
     childrenSerNos: [33, 35]
   },
@@ -267,7 +265,7 @@ const familyData = [
 const seedDatabase = async () => {
   try {
     // Clear existing data
-    await FamilyMember.deleteMany({});
+    await Member.deleteMany({});
     console.log('Cleared existing family members');
 
     // Add profile pictures to all family members
@@ -279,7 +277,7 @@ const seedDatabase = async () => {
     });
 
     // Insert new data
-    await FamilyMember.insertMany(enhancedFamilyData);
+    await Member.insertMany(enhancedFamilyData);
     console.log(`Added ${enhancedFamilyData.length} family members to the database`);
 
     // Disconnect from MongoDB

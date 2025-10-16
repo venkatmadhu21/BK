@@ -1,6 +1,6 @@
 
 const express = require('express');
-const FamilyMember = require('../models/FamilyMember');
+const Member = require('../models/Member');
 const router = express.Router();
 
 // Use the exact data structure from the MongoDB database
@@ -192,7 +192,6 @@ const familyData = [
     gender: "Male",
     serNo: 15,
     sonDaughterCount: 2,
-    spouse: { name: "Malati D Gogte", serNo: 16 },
     fatherSerNo: 5,
     motherSerNo: 6,
     level: 3,
@@ -206,7 +205,6 @@ const familyData = [
     gender: "Female",
     serNo: 16,
     sonDaughterCount: 2,
-    spouse: { name: "Dattatreya M Gogte", serNo: 15 },
     level: 3,
     childrenSerNos: [33, 35],
     dateOfBirth: new Date("1959-06-14")
@@ -465,11 +463,11 @@ const familyData = [
 router.get('/', async (req, res) => {
   try {
     // Clear existing data
-    await FamilyMember.deleteMany({});
+    await Member.deleteMany({});
     console.log('Cleared existing family members');
 
     // Insert new data
-    await FamilyMember.insertMany(familyData);
+    await Member.insertMany(familyData);
     console.log(`Added ${familyData.length} family members to the database`);
 
     res.json({ message: `Database seeded with ${familyData.length} family members` });

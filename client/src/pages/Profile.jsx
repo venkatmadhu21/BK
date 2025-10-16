@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { 
   User, 
@@ -26,6 +27,7 @@ const Profile = () => {
     dateOfBirth: user?.dateOfBirth || '',
     occupation: user?.occupation || '',
     maritalStatus: user?.maritalStatus || 'Single',
+    profilePicture: user?.profilePicture || '',
     address: {
       street: user?.address?.street || '',
       city: user?.address?.city || '',
@@ -67,11 +69,21 @@ const Profile = () => {
     }));
   };
 
-  const handleSave = () => {
-    // Here you would typically make an API call to update the user profile
-    console.log('Saving profile data:', formData);
-    setIsEditing(false);
-    // Show success message
+  const fileInputRef = useRef(null);
+
+  const handleSave = async () => {
+    try {
+      const payload = { ...formData };
+      // Ensure nested address object exists
+      if (!payload.address) payload.address = {};
+      const res = await api.put('/api/users/profile', payload);
+      setFormData(prev => ({ ...prev, ...res.data }));
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Failed to save profile:', err.response?.data || err.message);
+      const msg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Failed to save profile';
+      alert(msg);
+    }
   };
 
   const handlePasswordUpdate = () => {
@@ -95,6 +107,7 @@ const Profile = () => {
       dateOfBirth: user?.dateOfBirth || '',
       occupation: user?.occupation || '',
       maritalStatus: user?.maritalStatus || 'Single',
+      profilePicture: user?.profilePicture || '',
       address: {
         street: user?.address?.street || '',
         city: user?.address?.city || '',
@@ -184,93 +197,134 @@ const Profile = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <User className="mr-3" size={32} />
-              My Profile
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your personal information and account settings
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            {!isEditing ? (
-              <>
-                <button
-                  onClick={() => setShowPasswordModal(true)}
-                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  <Lock size={20} className="mr-2" />
-                  Change Password
-                </button>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <Edit size={20} className="mr-2" />
-                  Edit Profile
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                >
-                  <X size={20} className="mr-2" />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Save size={20} className="mr-2" />
-                  Save Changes
-                </button>
-              </>
-            )}
+      <div className="relative overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 to-orange-500/90" />
+        <div className="relative p-6 sm:p-8 text-white rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/15 text-white text-xs font-medium mb-2">
+                <User size={14} className="mr-1" /> Account Center
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                My Profile
+              </h1>
+              <p className="text-orange-50/90 text-sm sm:text-base mt-1">
+                Manage your personal information and account settings
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!isEditing ? (
+                <>
+                  <button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white/15 text-white hover:bg-white/20 transition-colors"
+                  >
+                    <Lock size={18} className="mr-2" /> Change Password
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-orange-700 hover:bg-orange-50 transition-colors"
+                  >
+                    <Edit size={18} className="mr-2" /> Edit Profile
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleCancel}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white/15 text-white hover:bg-white/20 transition-colors"
+                  >
+                    <X size={18} className="mr-2" /> Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-orange-700 hover:bg-orange-50 transition-colors"
+                  >
+                    <Save size={18} className="mr-2" /> Save Changes
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Picture Section */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
           <div className="text-center">
             <div className="relative inline-block">
-              <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                {user?.profilePicture ? (
-                  <img 
-                    src={user.profilePicture} 
+              <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-4 ring-4 ring-orange-100">
+                {formData?.profilePicture ? (
+                  <img
+                    src={formData.profilePicture}
                     alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={48} className="text-gray-400" />
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <User size={48} className="text-gray-400" />
+                  </div>
                 )}
               </div>
               {isEditing && (
-                <button className="absolute bottom-4 right-0 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors">
-                  <Camera size={16} />
-                </button>
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      // Convert to Base64 for quick preview and simple storage
+                      const toBase64 = (f) => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(f);
+                      });
+                      try {
+                        const base64 = await toBase64(file);
+                        setFormData((prev) => ({ ...prev, profilePicture: base64 }));
+                      } catch (err) {
+                        console.error('Failed to read file', err);
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    type="button"
+                    className="absolute bottom-4 right-0 bg-orange-600 text-white p-2 rounded-full shadow hover:bg-orange-700 transition-colors"
+                  >
+                    <Camera size={16} />
+                  </button>
+                </>
               )}
             </div>
             <h2 className="text-xl font-semibold text-gray-900">
               {formData.firstName} {formData.lastName}
             </h2>
             <p className="text-gray-600">{formData.occupation || 'No occupation specified'}</p>
-            <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-500">
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
               <Mail size={16} />
               <span>{formData.email}</span>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-600">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-2">Marital: {formData.maritalStatus || '—'}</div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-2">Country: {formData.address?.country || '—'}</div>
             </div>
           </div>
         </div>
 
         {/* Profile Information */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+            {!isEditing && (
+              <span className="text-xs text-gray-500">Last updated just now</span>
+            )}
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* First Name */}
@@ -284,7 +338,7 @@ const Profile = () => {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               ) : (
                 <div className="flex items-center space-x-2 text-gray-900">
@@ -305,7 +359,7 @@ const Profile = () => {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               ) : (
                 <div className="flex items-center space-x-2 text-gray-900">
@@ -326,7 +380,7 @@ const Profile = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               ) : (
                 <div className="flex items-center space-x-2 text-gray-900">
@@ -347,7 +401,7 @@ const Profile = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               ) : (
                 <div className="flex items-center space-x-2 text-gray-900">

@@ -47,6 +47,47 @@ const connectDB = async () => {
       });
       console.log(`Deleted ${deleteResult.deletedCount} invalid relationships`);
     }
+
+    // Additional fix: remove incorrect spouse relationships and clear spouseSerNo for specific IDs
+    const badPairs = [
+      { a: 15, b: 16 }, // siblings mistakenly marked spouses
+    ];
+
+    let removed = 0;
+    for (const { a, b } of badPairs) {
+      const del = await relationshipsCollection.deleteMany({
+        $or: [
+          { fromSerNo: a, toSerNo: b, relation: { $in: ['Spouse', 'Husband', 'Wife'] } },
+          { fromSerNo: b, toSerNo: a, relation: { $in: ['Spouse', 'Husband', 'Wife'] } }
+        ]
+      });
+      removed += del.deletedCount || 0;
+      // Clear spouseSerNo on both members
+      await membersCollection.updateMany(
+        { serNo: { $in: [a, b] } },
+        { $set: { spouseSerNo: null, 'maritalInfo.married': false } }
+      );
+    }
+
+    // Remove 19 ↔ 20 spouse if present; 19 should have no spouse
+    const del1920 = await relationshipsCollection.deleteMany({
+      $or: [
+        { fromSerNo: 19, toSerNo: 20, relation: { $in: ['Spouse', 'Husband', 'Wife'] } },
+        { fromSerNo: 20, toSerNo: 19, relation: { $in: ['Spouse', 'Husband', 'Wife'] } }
+      ]
+    });
+    removed += del1920.deletedCount || 0;
+    await membersCollection.updateOne(
+      { serNo: 19 },
+      { $set: { spouseSerNo: null, 'maritalInfo.married': false } }
+    );
+    // Don't force 20 if it doesn't exist; still clear if present
+    await membersCollection.updateOne(
+      { serNo: 20 },
+      { $set: { spouseSerNo: null, 'maritalInfo.married': false } }
+    );
+
+    console.log(`Removed ${removed} incorrect spouse relationships for IDs 15,16 and 19,20`);
     
     // Verify the cleanup
     const remainingRelationships = await relationshipsCollection.find().toArray();

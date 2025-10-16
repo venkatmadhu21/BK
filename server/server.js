@@ -8,7 +8,8 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json({ extended: false }));
+// Increase JSON body limit to support base64 profile pictures
+app.use(express.json({ limit: '5mb' }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -16,6 +17,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/family', require('./routes/family'));
 app.use('/api/news', require('./routes/news'));
 app.use('/api/events', require('./routes/events'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Development routes
 if (process.env.NODE_ENV !== 'production') {

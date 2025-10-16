@@ -8,9 +8,11 @@
     "server": "nodemon server.js",
     "client": "cd ../client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "check-db": "node scripts/check-db.js"
+    "check-db": "node scripts/check-db.js",
+    "update:profile-images": "node scripts/update-profile-images.js"
   },
   "dependencies": {
+    "bal-krishna-nivas": "file:..",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

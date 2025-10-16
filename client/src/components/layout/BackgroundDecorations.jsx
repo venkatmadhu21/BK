@@ -4,7 +4,7 @@ const BackgroundDecorations = () => {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       {/* Ancient Mandala Patterns */}
-      <div className="absolute top-20 left-10 w-32 h-32 opacity-20">
+      <div className="absolute top-20 left-10 w-32 h-32 opacity-20 pointer-events-none">
         <svg viewBox="0 0 100 100" className="w-full h-full text-orange-300 animate-spin-slow">
           <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="5,5"/>
           <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1"/>

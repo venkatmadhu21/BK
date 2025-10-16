@@ -51,16 +51,20 @@ const ModernTreeNode = ({ node }) => {
             />
           </div>
           
-          <Link to={`/family/member/${node.attributes.serNo}`} className="node-name">
-            {node.name}
-          </Link>
-          
-          {node.attributes.spouse && (
-            <div className="node-spouse">
-              <span className="spouse-label">Spouse:</span> {node.attributes.spouse}
-            </div>
-          )}
-          
+          <div className="node-couple">
+            <Link to={`/family/member/${node.attributes.serNo}`} className="node-name">
+              {node.name}
+            </Link>
+            {node.spouse && (
+              <>
+                <span className="couple-sep">&nbsp;&amp;&nbsp;</span>
+                <Link to={`/family/member/${node.spouse.serNo}`} className="node-name spouse-name">
+                  {node.spouse.fullName}
+                </Link>
+              </>
+            )}
+          </div>
+
           {node.attributes.vansh && (
             <div className="node-vansh">{node.attributes.vansh}</div>
           )}

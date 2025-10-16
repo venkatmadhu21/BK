@@ -151,6 +151,22 @@
   text-decoration: underline;
 }
 
+.node-couple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.couple-sep {
+  color: rgba(0,0,0,0.45);
+}
+
+.spouse-name {
+  opacity: 0.9;
+}
+
 .node-details {
   display: flex;
   flex-direction: column;

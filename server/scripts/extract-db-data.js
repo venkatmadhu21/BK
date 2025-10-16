@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: '../.env' });
 
-// Import the FamilyMember model
-const FamilyMember = require('../models/FamilyMember');
+// Import the Member model
+const Member = require('../models/Member');
 
 // Connect to MongoDB and extract the data
 const extractData = async () => {
@@ -20,12 +20,12 @@ const extractData = async () => {
     console.log('MongoDB Connected Successfully');
     
     // Check if there are any family members in the database
-    const count = await FamilyMember.countDocuments();
+    const count = await Member.countDocuments();
     console.log(`Number of family members in the database: ${count}`);
     
     if (count > 0) {
       // Get all family members
-      const allMembers = await FamilyMember.find().lean();
+      const allMembers = await Member.find().lean();
       console.log(`Retrieved ${allMembers.length} family members from the database`);
       
       // Convert to a format suitable for JavaScript
@@ -39,7 +39,7 @@ const extractData = async () => {
       const outputPath = path.join(__dirname, 'extracted-family-data.js');
       fs.writeFileSync(
         outputPath,
-        `// Extracted from MongoDB database: bal-krishna-nivas, collection: familymembers\n` +
+        `// Extracted from MongoDB database: bal-krishna-nivas, collection: members\n` +
         `// Connection String: mongodb://localhost:27017/bal-krishna-nivas\n` +
         `// Extracted on: ${new Date().toISOString()}\n\n` +
         `const familyData = ${formattedData};\n\n` +
