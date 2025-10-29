@@ -1,6 +1,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import '../styles/heritage-background.css';
 
 const About = () => {
   const { t } = useLanguage();
@@ -12,8 +13,14 @@ const About = () => {
     { src: '/images/5.png', caption: t('aboutBKN.galleryCaption5') }
   ];
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-100 to-stone-200 text-gray-900">
-      {/* Hero Section */}
+    <div className="heritage-bg min-h-screen relative overflow-hidden text-gray-900">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-content">
+        {/* Hero Section */}
       <section className="relative h-[320px] sm:h-[420px] md:h-[520px] overflow-hidden">
         <img
           src="/images/main1.jpg"
@@ -114,6 +121,7 @@ const About = () => {
           </a>
         </div>
       </section>
+      </div>
     </div>
   );
 };

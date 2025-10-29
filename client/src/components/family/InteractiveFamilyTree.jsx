@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react';
 import api from '../../utils/api';
+import { transformMembersData } from '../../utils/memberTransform';
 
 const InteractiveFamilyTree = () => {
   const [allMembers, setAllMembers] = useState([]);
@@ -44,7 +45,9 @@ const InteractiveFamilyTree = () => {
           api.get('/api/family/all-relationships')
         ]);
 
-        const members = membersRes.data || [];
+        // Handle both response formats: array or { success, data } object
+        const rawMembersData = Array.isArray(membersRes.data) ? membersRes.data : (membersRes.data.data || []);
+        const members = transformMembersData(rawMembersData) || [];
         const relationshipsRaw = relationshipsRes.data || [];
 
         // Defensive filter: prevent spouse edges between siblings and drop known bad 19↔20

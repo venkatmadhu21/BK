@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import EnhancedFamilyMemberCard from './EnhancedFamilyMemberCard';
 import api from '../../utils/api';
+import { transformMemberData } from '../../utils/memberTransform';
 
 const EnhancedFamilyTree = () => {
   const [treeData, setTreeData] = useState(null);
@@ -32,13 +33,9 @@ const EnhancedFamilyTree = () => {
       try {
         setLoading(true);
         
-        // Fetch the family tree (legacy endpoint)
-        const treeRes = await api.get(`/api/family/tree/${serNo || 1}`);
+        // Fetch the family tree from Members collection
+        const treeRes = await api.get(`/api/family/tree-fmem/${serNo || 1}`);
         setTreeData(treeRes.data);
-        
-        // Fetch all relationships for context
-        const relationshipsRes = await api.get('/api/family/relationships');
-        setRelationships(relationshipsRes.data);
         
         // Auto-expand the root node
         setExpandedNodes(new Set([parseInt(serNo || 1)]));
@@ -167,14 +164,14 @@ const EnhancedFamilyTree = () => {
                 <div className="flex items-center">
                   <div className={`relative mr-3`}>
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-inner ${
-                      member.gender === 'Male' ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-pink-50 ring-2 ring-pink-200'
+                      member.gender?.toLowerCase() === 'male' ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-pink-50 ring-2 ring-pink-200'
                     }`}>
-                      <User className={`h-6 w-6 ${member.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`} />
+                      <User className={`h-6 w-6 ${member.gender?.toLowerCase() === 'male' ? 'text-blue-600' : 'text-pink-600'}`} />
                     </div>
                     <span className={`absolute -bottom-1 -right-1 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                      member.gender === 'Male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+                      member.gender?.toLowerCase() === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
                     }`}>
-                      {member.gender?.[0] || 'U'}
+                      {member.gender?.[0]?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <div>

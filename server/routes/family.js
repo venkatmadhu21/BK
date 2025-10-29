@@ -6,8 +6,64 @@ const auth = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const { buildMembersIndex, buildRelationRulesMap, getRelationsForSerNo } = require('../utils/relationEngine');
+const Members = require('../models/mem');
 
 const router = express.Router();
+
+// Helper function to transform member data from Members collection
+const transformMemberData = (member) => {
+  if (!member) return null;
+  
+  return {
+    _id: member._id,
+    serNo: member.serNo,
+    vansh: member.vansh,
+    level: member.level,
+    fatherSerNo: member.fatherSerNo,
+    motherSerNo: member.motherSerNo,
+    spouseSerNo: member.spouseSerNo,
+    childrenSerNos: member.childrenSerNos,
+    isapproved: member.isapproved,
+    // Personal details
+    firstName: member.personalDetails?.firstName || '',
+    middleName: member.personalDetails?.middleName || '',
+    lastName: member.personalDetails?.lastName || '',
+    fullName: `${member.personalDetails?.firstName || ''} ${member.personalDetails?.middleName || ''} ${member.personalDetails?.lastName || ''}`.trim(),
+    gender: member.personalDetails?.gender || '',
+    dateOfBirth: member.personalDetails?.dateOfBirth,
+    dob: member.personalDetails?.dateOfBirth,
+    email: member.personalDetails?.email || '',
+    mobileNumber: member.personalDetails?.mobileNumber || '',
+    country: member.personalDetails?.country || '',
+    state: member.personalDetails?.state || '',
+    city: member.personalDetails?.city || '',
+    district: member.personalDetails?.district || '',
+    colonyStreet: member.personalDetails?.colonyStreet || '',
+    flatPlotNumber: member.personalDetails?.flatPlotNumber || '',
+    pinCode: member.personalDetails?.pinCode || '',
+    area: member.personalDetails?.area || '',
+    aboutYourself: member.personalDetails?.aboutYourself || '',
+    profession: member.personalDetails?.profession || '',
+    qualifications: member.personalDetails?.qualifications || '',
+    // Profile image as base64 (with mime type)
+    profileImage: member.personalDetails?.profileImage?.data ? 
+      `data:${member.personalDetails.profileImage.mimeType || 'image/jpeg'};base64,${member.personalDetails.profileImage.data}` 
+      : null,
+    // Married status for display
+    isAlive: member.personalDetails?.isAlive === 'yes',
+    dateOfDeath: member.personalDetails?.dateOfDeath,
+    dod: member.personalDetails?.dateOfDeath,
+    everMarried: member.personalDetails?.everMarried === 'yes',
+    // Marital details
+    divorcedDetails: member.divorcedDetails,
+    marriedDetails: member.marriedDetails,
+    remarriedDetails: member.remarriedDetails,
+    widowedDetails: member.widowedDetails,
+    parentsInformation: member.parentsInformation,
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt
+  };
+};
 
 // @route   GET api/family
 // @desc    Get all family members (migrated to use Members collection)
@@ -23,6 +79,68 @@ router.get('/', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+// @route   GET api/family/search
+// @desc    Search family members by name for parent selection
+// @access  Public (temporarily for testing)
+router.get('/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query || query.trim().length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
+
+    const searchRegex = new RegExp(query, 'i');
+
+    const members = await Member.find({
+      $or: [
+        { 'personalDetails.firstName': searchRegex },
+        { 'personalDetails.middleName': searchRegex },
+        { 'personalDetails.lastName': searchRegex }
+      ]
+    })
+      .select('personalDetails serNo vansh')
+      .limit(10);
+
+    const formattedMembers = members.map((member) => ({
+      id: member._id,
+      serNo: member.serNo || '',
+      firstName: member.personalDetails?.firstName || '',
+      middleName: member.personalDetails?.middleName || '',
+      lastName: member.personalDetails?.lastName || '',
+      dateOfBirth: formatDate(member.personalDetails?.dateOfBirth),
+      profileImage: member.personalDetails?.profileImage || null,
+      gender: member.personalDetails?.gender || '',
+      vansh: member.vansh || '',
+      bio: member.personalDetails?.aboutYourself || '',
+      email: member.personalDetails?.email || '',
+      mobileNumber: member.personalDetails?.mobileNumber || '',
+      displayName: [member.personalDetails?.firstName, member.personalDetails?.middleName, member.personalDetails?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: formattedMembers
+    });
+  } catch (error) {
+    console.error('Error searching parents:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().split('T')[0];
+}
 
 // @route   GET api/family/member/:serNo
 // @desc    Get family member by serial number (migrated to use Members collection)
@@ -451,7 +569,7 @@ router.get('/members-new', async (req, res) => {
 });
 
 // @route   GET api/family/member-new/:serNo
-// @desc    Get member by serial number from new collection
+// @desc    Get member by serial number from Members collection
 // @access  Public
 router.get('/member-new/:serNo', async (req, res) => {
   try {
@@ -467,15 +585,20 @@ router.get('/member-new/:serNo', async (req, res) => {
     }
     
     console.log('Looking for member with serNo:', serNo);
-    const member = await Member.findOne({ serNo });
+    // Fetch from Members collection (new collection with full profile data)
+    const member = await Members.findOne({ serNo });
 
     if (!member) {
       console.log('Member not found with serNo:', serNo);
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    console.log('Found member:', member.fullName || member.firstName);
-    res.json(member);
+    const memberName = member.personalDetails?.firstName || member.firstName;
+    console.log('Found member:', memberName);
+    
+    // Transform and return the member data
+    const transformedMember = transformMemberData(member);
+    res.json(transformedMember);
   } catch (error) {
     console.error('Error in /member-new/:serNo:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -498,7 +621,7 @@ router.get('/relationships/:serNo', async (req, res) => {
 });
 
 // @route   GET api/family/member-new/:serNo/children
-// @desc    Get all children of a member using relationships
+// @desc    Get all children of a member from Members collection
 // @access  Public
 router.get('/member-new/:serNo/children', async (req, res) => {
   try {
@@ -519,24 +642,32 @@ router.get('/member-new/:serNo/children', async (req, res) => {
       return res.status(400).json({ message: 'Invalid serNo parameter' });
     }
     
-    // Find all relationships where this member is a parent (Son/Daughter relationships FROM parent TO children)
-    const childRelationships = await Relationship.find({
-      fromSerNo: serNo,
-      relation: { $in: ['Son', 'Daughter'] }
-    });
+    // First get the parent member to access childrenSerNos directly
+    const parentMember = await Members.findOne({ serNo });
     
-    console.log(`Found ${childRelationships.length} child relationships for serNo ${serNo}`);
+    if (!parentMember) {
+      console.log('Parent member not found with serNo:', serNo);
+      return res.json([]);
+    }
     
-    // Get unique child serNos
-    const childSerNos = [...new Set(childRelationships.map(rel => rel.toSerNo))];
+    // Get child serNos from the parent's childrenSerNos field
+    const childSerNos = parentMember.childrenSerNos || [];
+    console.log(`Found ${childSerNos.length} children for serNo ${serNo}`);
     
-    // Get the actual member data for children
-    const children = await Member.find({ 
+    if (childSerNos.length === 0) {
+      return res.json([]);
+    }
+    
+    // Get the actual member data for children from Members collection
+    const children = await Members.find({ 
       serNo: { $in: childSerNos } 
     }).sort({ serNo: 1 });
 
-    console.log(`Found ${children.length} children for serNo ${serNo}`);
-    res.json(children);
+    console.log(`Retrieved ${children.length} child members for serNo ${serNo}`);
+    
+    // Transform the children data
+    const transformedChildren = children.map(transformMemberData);
+    res.json(transformedChildren);
   } catch (error) {
     console.error('Error in /member-new/:serNo/children:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -544,7 +675,7 @@ router.get('/member-new/:serNo/children', async (req, res) => {
 });
 
 // @route   GET api/family/member-new/:serNo/parents
-// @desc    Get parents of a member using relationships
+// @desc    Get parents of a member from Members collection
 // @access  Public
 router.get('/member-new/:serNo/parents', async (req, res) => {
   try {
@@ -565,30 +696,35 @@ router.get('/member-new/:serNo/parents', async (req, res) => {
       return res.status(400).json({ message: 'Invalid serNo parameter' });
     }
     
-    // Find parent relationships (Father/Mother relationships FROM children TO parents)
-    const parentRelationships = await Relationship.find({
-      fromSerNo: serNo,
-      relation: { $in: ['Father', 'Mother'] }
-    });
+    // Get the child member to access parent serNos directly
+    const childMember = await Members.findOne({ serNo });
     
-    console.log(`Found ${parentRelationships.length} parent relationships for serNo ${serNo}`);
+    if (!childMember) {
+      console.log('Child member not found with serNo:', serNo);
+      return res.json({ father: null, mother: null });
+    }
     
     let father = null;
     let mother = null;
     
-    for (const rel of parentRelationships) {
-      if (rel.relation === 'Father') {
-        father = await Member.findOne({ serNo: rel.toSerNo });
-      } else if (rel.relation === 'Mother') {
-        mother = await Member.findOne({ serNo: rel.toSerNo });
-      }
+    // Fetch father if fatherSerNo exists
+    if (childMember.fatherSerNo) {
+      father = await Members.findOne({ serNo: childMember.fatherSerNo });
+      console.log(`Found father for serNo ${serNo}:`, father?.personalDetails?.firstName || father?.firstName);
+    }
+    
+    // Fetch mother if motherSerNo exists
+    if (childMember.motherSerNo) {
+      mother = await Members.findOne({ serNo: childMember.motherSerNo });
+      console.log(`Found mother for serNo ${serNo}:`, mother?.personalDetails?.firstName || mother?.firstName);
     }
 
-    const parents = { father, mother };
-    console.log(`Found parents for serNo ${serNo}:`, { 
-      father: father?.fullName || father?.firstName, 
-      mother: mother?.fullName || mother?.firstName 
-    });
+    const parents = { 
+      father: father ? transformMemberData(father) : null, 
+      mother: mother ? transformMemberData(mother) : null 
+    };
+    
+    console.log(`Returning parents for serNo ${serNo}`);
     res.json(parents);
   } catch (error) {
     console.error('Error in /member-new/:serNo/parents:', error);
@@ -1081,6 +1217,94 @@ router.get('/complete-tree', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error fetching complete family tree:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   GET api/family/tree-fmem/:serNo
+// @desc    Get full descendant tree using Members collection
+// @access  Public
+router.get('/tree-fmem/:serNo', async (req, res) => {
+  try {
+    const serNo = parseInt(req.params.serNo);
+    console.log(`Fetching family tree for serNo: ${serNo} using Members collection`);
+
+    const rootMember = await Members.findOne({ serNo }).lean();
+
+    if (!rootMember) {
+      console.log(`Member with serNo ${serNo} not found`);
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    const rootName = rootMember.personalDetails?.firstName || '';
+    console.log(`Found root member: ${rootName} (${rootMember.serNo})`);
+
+    async function buildFamilyTree(member, depth = 1, maxDepth = 10) {
+      if (depth > maxDepth) return null;
+
+      const childSerNos = member.childrenSerNos || [];
+      
+      const firstName = member.personalDetails?.firstName || '';
+      const middleName = member.personalDetails?.middleName || '';
+      const lastName = member.personalDetails?.lastName || '';
+      const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ').trim();
+
+      // Fetch spouse if spouseSerNo exists
+      let spouse = null;
+      if (member.spouseSerNo) {
+        spouse = await Members.findOne({ serNo: member.spouseSerNo }).lean();
+        if (spouse) {
+          const spouseFN = spouse.personalDetails?.firstName || '';
+          const spouseMN = spouse.personalDetails?.middleName || '';
+          const spouseLN = spouse.personalDetails?.lastName || '';
+          spouse.fullName = [spouseFN, spouseMN, spouseLN].filter(Boolean).join(' ').trim();
+        }
+      }
+
+      const treeNode = {
+        serNo: member.serNo,
+        firstName,
+        middleName,
+        lastName,
+        name: fullName,
+        fullName,
+        gender: member.personalDetails?.gender || '',
+        level: member.level,
+        vansh: member.vansh,
+        spouseSerNo: member.spouseSerNo,
+        spouse: spouse,
+        fatherSerNo: member.fatherSerNo,
+        motherSerNo: member.motherSerNo,
+        childrenSerNos: childSerNos,
+        isApproved: member.isapproved,
+        profileImage: member.personalDetails?.profileImage,
+        children: []
+      };
+
+      if (childSerNos.length === 0) {
+        return treeNode;
+      }
+
+      const children = await Members.find({ serNo: { $in: childSerNos } }).lean();
+      
+      const childrenWithDescendants = [];
+      for (const child of children) {
+        const childTree = await buildFamilyTree(child, depth + 1, maxDepth);
+        if (childTree) {
+          childrenWithDescendants.push(childTree);
+        }
+      }
+
+      treeNode.children = childrenWithDescendants;
+      return treeNode;
+    }
+
+    const tree = await buildFamilyTree(rootMember);
+    
+    console.log(`Returning family tree with root: ${rootName} (${tree.serNo})`);
+    res.json(tree);
+  } catch (error) {
+    console.error('Error building family tree:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

@@ -22,6 +22,7 @@ import {
 import { exportMemberDetailsToPDF } from '../utils/pdfExport';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import { transformMemberData, transformMembersData } from '../utils/memberTransform';
 
 const SectionCard = ({ title, icon, count, actions, children }) => (
   <div className="bg-white rounded-2xl shadow-md border border-gray-200">
@@ -81,13 +82,23 @@ const FamilyMemberPage = () => {
         }
 
         const memberRes = await api.get(`/api/family/member-new/${serNo}`);
-        setMember(memberRes.data);
+        // Transform the member data to ensure compatibility with new schema
+        const transformedMember = transformMemberData(memberRes.data);
+        setMember(transformedMember);
 
         const parentsRes = await api.get(`/api/family/member-new/${serNo}/parents`);
-        setParents(parentsRes.data);
+        // Transform parent data if it's an array
+        const transformedParents = Array.isArray(parentsRes.data) 
+          ? transformMembersData(parentsRes.data) 
+          : parentsRes.data;
+        setParents(transformedParents);
 
         const childrenRes = await api.get(`/api/family/member-new/${serNo}/children`);
-        setChildren(childrenRes.data);
+        // Transform children data
+        const transformedChildren = Array.isArray(childrenRes.data) 
+          ? transformMembersData(childrenRes.data) 
+          : childrenRes.data;
+        setChildren(transformedChildren);
 
         try {
           setLoadingRelations(true);
@@ -192,11 +203,11 @@ const FamilyMemberPage = () => {
     member.isAlive === false ? 'Deceased' : null
   ].filter(Boolean);
   const fullAddress = [
-    member.addressLine1,
-    member.addressLine2,
+    member.colonyStreet || member.addressLine1,
+    member.flatPlotNumber || member.addressLine2,
     member.city || member.currentCity,
     member.state,
-    member.postalCode,
+    member.pinCode || member.postalCode,
     member.country
   ].filter(Boolean).join(', ');
 
@@ -249,20 +260,20 @@ const FamilyMemberPage = () => {
           <SectionCard title="Profile" icon={<UserCircle className="h-5 w-5 text-blue-600" />}> 
             <FamilyMemberCard member={member} />
 
-            {(member.Bio || member.occupation || member.dob || member.dod || member.maritalInfo || member.vansh || member.bloodGroup) && (
+            {(member.aboutYourself || member.occupation || member.dateOfBirth || member.dateOfDeath || member.maritalInfo || member.vansh || member.bloodGroup) && (
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mt-4">
                 <h4 className="text-sm font-semibold text-gray-800 mb-3">Additional Information</h4>
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                  {member.dob && (
+                  {member.dateOfBirth && (
                     <div>
                       <p className="text-gray-500">Date of Birth</p>
-                      <p className="font-medium">{formatDate(member.dob)}</p>
+                      <p className="font-medium">{formatDate(member.dateOfBirth)}</p>
                     </div>
                   )}
-                  {member.dod && (
+                  {member.dateOfDeath && (
                     <div>
                       <p className="text-gray-500">Date of Death</p>
-                      <p className="font-medium">{formatDate(member.dod)}</p>
+                      <p className="font-medium">{formatDate(member.dateOfDeath)}</p>
                     </div>
                   )}
                   {member.vansh && (

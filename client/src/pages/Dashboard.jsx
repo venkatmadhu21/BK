@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import heroImage from '../assets/images/hero.jpg';
 import ionBal from '../assets/images/ion-bal.jpg';
+import '../styles/heritage-background.css';
 
 // Small helper for accent ring without changing primary palette
 const Card = ({ children, className = '' }) => (
@@ -58,8 +59,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="relative space-y-6 xs:space-y-8">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-orange-50 via-white to-blue-50" />
+    <div className="heritage-bg min-h-screen relative overflow-hidden">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-content relative space-y-6 xs:space-y-8">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-orange-50 via-white to-blue-50" />
       <div className="absolute -top-24 -right-20 w-72 h-72 bg-orange-200/60 blur-3xl rounded-full -z-10" />
       <div className="absolute top-1/3 -left-24 w-80 h-80 bg-blue-200/40 blur-3xl rounded-full -z-10" />
 
@@ -261,6 +268,7 @@ const Dashboard = () => {
           </div>
         </div>
       </Card>
+      </div>
     </div>
   );
 };

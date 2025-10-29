@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { Calendar, Clock, MapPin } from 'lucide-react';
+import api from '../utils/api';
 import '../styles/heritage-background.css';
 
 // Import images
@@ -13,11 +16,16 @@ import deviImage from '../assets/images/devi.png';
 const Home = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [latestNews, setLatestNews] = useState([]);
+  const [loadingNews, setLoadingNews] = useState(false);
   const heroRef = useRef(null);
 
   
@@ -58,6 +66,74 @@ const Home = () => {
     
     return () => clearInterval(cursorInterval);
   }, []);
+
+  // Fetch upcoming events when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUpcomingEvents = async () => {
+        setLoadingEvents(true);
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const response = await api.get('/api/events', {
+            params: {
+              status: 'Upcoming',
+              limit: 5,
+              sortBy: 'startDate',
+              sortOrder: 'asc'
+            }
+          });
+          
+          // Filter to only show events with startDate > today
+          const upcoming = (response.data.events || [])
+            .filter(event => {
+              const eventDate = new Date(event.startDate).toISOString().split('T')[0];
+              return eventDate > today;
+            })
+            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+            .slice(0, 5);
+          
+          console.log('📅 Fetched Events:', upcoming);
+          setUpcomingEvents(upcoming);
+        } catch (err) {
+          console.error('❌ Failed to fetch upcoming events:', err);
+          setUpcomingEvents([]);
+        } finally {
+          setLoadingEvents(false);
+        }
+      };
+
+      fetchUpcomingEvents();
+    }
+  }, [isAuthenticated]);
+
+  // Fetch latest news when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchLatestNews = async () => {
+        setLoadingNews(true);
+        try {
+          const response = await api.get('/api/news', {
+            params: {
+              limit: 10,
+              sortBy: 'publishedDate',
+              sortOrder: 'desc'
+            }
+          });
+          
+          const news = (response.data.news || []).slice(0, 10);
+          console.log('📰 Fetched News:', news);
+          setLatestNews(news);
+        } catch (err) {
+          console.error('❌ Failed to fetch latest news:', err);
+          setLatestNews([]);
+        } finally {
+          setLoadingNews(false);
+        }
+      };
+
+      fetchLatestNews();
+    }
+  }, [isAuthenticated]);
 
   // Intersection Observer for animations
   useEffect(() => {
@@ -123,6 +199,8 @@ const Home = () => {
         <div className="heritage-decoration"></div>
         <div className="heritage-decoration"></div>
         <div className="heritage-decoration"></div>
+        
+        
         <div className="heritage-content">
       {/* Hero Section with Three Images */}
       <div id="main-content" ref={heroRef} className="relative overflow-hidden">
@@ -543,6 +621,137 @@ const Home = () => {
             </div>
           </div>
         </div>
+
+        {/* Upcoming Events Section - Only show when authenticated and events exist */}
+        {isAuthenticated && upcomingEvents.length > 0 && (
+          <div className="relative z-10 py-16 xs:py-20 sm:py-24 bg-gradient-to-r from-white via-orange-50 to-white overflow-hidden">
+            {/* Background decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-10 right-10 w-32 h-32 bg-orange-200/20 rounded-full animate-pulse"></div>
+              <div className="absolute bottom-10 left-10 w-24 h-24 bg-orange-300/20 rounded-full animate-bounce"></div>
+              <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-orange-400/15 rounded-full animate-ping"></div>
+            </div>
+
+            <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 relative z-10">
+              {/* Section Header */}
+              <div className="text-center mb-12 xs:mb-16">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Calendar className="text-orange-600" size={28} />
+                  <h2 className="text-3xl xs:text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                    Upcoming Events
+                  </h2>
+                </div>
+                <p className="text-gray-600 text-sm xs:text-base sm:text-lg max-w-2xl mx-auto">
+                  Don't miss our upcoming family gatherings and celebrations
+                </p>
+              </div>
+
+              {/* Events Grid */}
+              {loadingEvents ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 xs:gap-6 mb-8">
+                  {upcomingEvents.map((event, index) => (
+                    <div
+                      key={event._id || event.id}
+                      className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden cursor-pointer border border-gray-100 hover:border-orange-300"
+                      onClick={() => navigate('/events')}
+                    >
+                      {/* Event Image */}
+                      {event.images && event.images.length > 0 && (
+                        <div className="relative h-40 xs:h-48 overflow-hidden bg-gradient-to-br from-orange-200 to-orange-100">
+                          <img
+                            src={event.images[0].thumbnail || event.images[0].url}
+                            alt={event.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        </div>
+                      )}
+
+                      {/* Event Details */}
+                      <div className="p-4 xs:p-5 sm:p-6">
+                        {/* Event Type Badge */}
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                            event.eventType === 'Birthday' ? 'bg-pink-100 text-pink-800' :
+                            event.eventType === 'Anniversary' ? 'bg-red-100 text-red-800' :
+                            event.eventType === 'Wedding' ? 'bg-purple-100 text-purple-800' :
+                            event.eventType === 'Festival' ? 'bg-blue-100 text-blue-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            {event.eventType}
+                          </span>
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                            event.priority === 'High' ? 'bg-red-100 text-red-800' :
+                            event.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {event.priority}
+                          </span>
+                        </div>
+
+                        {/* Event Title */}
+                        <h3 className="text-lg xs:text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors duration-300 line-clamp-2">
+                          {event.title}
+                        </h3>
+
+                        {/* Event Meta Info */}
+                        <div className="space-y-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={16} className="text-orange-500 flex-shrink-0" />
+                            <span className="truncate">
+                              {new Date(event.startDate).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-orange-500 flex-shrink-0" />
+                            <span>{event.startTime}</span>
+                          </div>
+                          {event.venue?.name && (
+                            <div className="flex items-center gap-2">
+                              <MapPin size={16} className="text-orange-500 flex-shrink-0" />
+                              <span className="truncate">{event.venue.name}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Description Preview */}
+                        {event.description && (
+                          <p className="mt-3 text-sm text-gray-600 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
+
+                        {/* View More Button */}
+                        <button className="mt-4 w-full py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 font-medium text-sm">
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* View All Events Button */}
+              <div className="text-center">
+                <button
+                  onClick={() => navigate('/events')}
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-white text-orange-600 font-semibold rounded-xl shadow-lg hover:shadow-xl border-2 border-orange-600 hover:bg-orange-50 transition-all duration-300 hover:scale-105"
+                >
+                  View All Events
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Call to Action Section */}
         <div className="relative z-10 py-20 bg-gradient-to-br from-orange-50 to-orange-100 overflow-hidden">

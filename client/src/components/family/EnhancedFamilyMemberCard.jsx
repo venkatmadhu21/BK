@@ -21,6 +21,8 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
   const [imageErrorFull, setImageErrorFull] = useState(false);
   const [imageErrorCompact, setImageErrorCompact] = useState(false);
 
+  const isMale = () => member?.gender?.toLowerCase() === 'male';
+
   const getInitials = () => {
     const parts = memberName.split(' ').filter(Boolean);
     const first = parts[0] ? parts[0][0] : '';
@@ -59,7 +61,7 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="relative mr-3">
-                <div className={`w-10 h-10 rounded-full overflow-hidden ring-2 ${member.gender === 'Male' ? 'ring-blue-200' : 'ring-pink-200'} shadow-sm relative`}> 
+                <div className={`w-10 h-10 rounded-full overflow-hidden ring-2 ${isMale() ? 'ring-blue-200' : 'ring-pink-200'} shadow-sm relative`}> 
                   <img
                     src={getProfileImageUrl(member.profileImage, member.gender)}
                     alt={memberName}
@@ -71,13 +73,13 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
                     }}
                   />
                   {(imageErrorCompact || !member.profileImage) && (
-                    <div className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white ${member.gender === 'Male' ? 'bg-blue-400' : 'bg-pink-400'}`}>
+                    <div className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white ${isMale() ? 'bg-blue-400' : 'bg-pink-400'}`}>
                       {getInitials()}
                     </div>
                   )}
                 </div>
-                <span className={`absolute -bottom-1 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${member.gender === 'Male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
-                  {member.gender?.[0] || 'U'}
+                <span className={`absolute -bottom-1 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${isMale() ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
+                  {member.gender?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div>
@@ -134,7 +136,7 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center">
           <div className="relative mr-4">
-            <div className={`w-16 h-16 rounded-full overflow-hidden ring-2 ${member.gender === 'Male' ? 'ring-blue-200' : 'ring-pink-200'} shadow relative`}> 
+            <div className={`w-16 h-16 rounded-full overflow-hidden ring-2 ${isMale() ? 'ring-blue-200' : 'ring-pink-200'} shadow relative`}> 
               <img
                 src={getProfileImageUrl(member.profileImage, member.gender)}
                 alt={memberName}
@@ -147,13 +149,13 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
                 }}
               />
               {(imageErrorFull || !member.profileImage) && (
-                <div className={`absolute inset-0 flex items-center justify-center text-xs font-bold text-white ${member.gender === 'Male' ? 'bg-blue-500' : 'bg-pink-500'}`}>
+                <div className={`absolute inset-0 flex items-center justify-center text-xs font-bold text-white ${isMale() ? 'bg-blue-500' : 'bg-pink-500'}`}>
                   {getInitials()}
                 </div>
               )}
             </div>
-            <span className={`absolute -bottom-1 -right-1 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${member.gender === 'Male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
-              {member.gender?.[0] || 'U'}
+            <span className={`absolute -bottom-1 -right-1 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isMale() ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
+              {member.gender?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>
           <div>
@@ -162,7 +164,7 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
               <span className="inline-flex items-center bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full font-semibold border border-amber-200">#{member.serNo}</span>
               <span className="inline-flex items-center bg-blue-50 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">Level {member.level}</span>
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full border ${
-                member.gender === 'Male' 
+                isMale() 
                   ? 'bg-blue-50 text-blue-800 border-blue-200' 
                   : 'bg-pink-50 text-pink-800 border-pink-200'
               }`}>

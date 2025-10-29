@@ -6,6 +6,8 @@ import { getProfileImageUrl } from '../../utils/profileImages';
 const FamilyMemberCard = ({ member }) => {
   if (!member) return null;
 
+  const isMale = () => member?.gender?.toLowerCase() === 'male';
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-center mb-4">
@@ -48,12 +50,12 @@ const FamilyMemberCard = ({ member }) => {
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mr-3 border border-gray-200">
               <img
-                src={getProfileImageUrl(null, member.gender === 'Male' ? 'Female' : 'Male')}
+                src={getProfileImageUrl(null, isMale() ? 'Female' : 'Male')}
                 alt="Spouse"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = getProfileImageUrl(null, member.gender === 'Male' ? 'Female' : 'Male');
+                  e.target.src = getProfileImageUrl(null, isMale() ? 'Female' : 'Male');
                 }}
               />
             </div>

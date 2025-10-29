@@ -17,6 +17,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import api from '../../utils/api';
+import { transformMembersData } from '../../utils/memberTransform';
 
 const VisualFamilyTree = () => {
   const [allMembers, setAllMembers] = useState([]);
@@ -38,11 +39,17 @@ const VisualFamilyTree = () => {
           api.get('/api/family/all-relationships')
         ]);
         
-        setAllMembers(membersRes.data);
+        // Handle both response formats: array or { success, data } object
+        const rawMembersData = Array.isArray(membersRes.data) ? membersRes.data : (membersRes.data.data || []);
+        
+        // Transform members data from new schema to flat structure
+        const transformedMembers = transformMembersData(rawMembersData);
+        
+        setAllMembers(transformedMembers);
         setAllRelationships(relationshipsRes.data);
         
         if (serNo) {
-          const member = membersRes.data.find(m => m.serNo === parseInt(serNo));
+          const member = transformedMembers.find(m => m.serNo === parseInt(serNo));
           setSelectedMember(member);
         }
         
@@ -150,9 +157,9 @@ const VisualFamilyTree = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                member.gender === 'Male' ? 'bg-blue-100' : 'bg-pink-100'
+                member.gender?.toLowerCase() === 'male' ? 'bg-blue-100' : 'bg-pink-100'
               }`}>
-                <User className={`h-4 w-4 ${member.gender === 'Male' ? 'text-blue-500' : 'text-pink-500'}`} />
+                <User className={`h-4 w-4 ${member.gender?.toLowerCase() === 'male' ? 'text-blue-500' : 'text-pink-500'}`} />
               </div>
               <div>
                 <h4 className="font-bold text-sm">{memberName}</h4>

@@ -27,7 +27,8 @@ const NewFeaturesShowcase = () => {
       try {
         // Fetch members (original collection)
         const membersRes = await api.get('/api/family/members');
-        const members = membersRes.data;
+        // Handle both response formats: array or { success, data } object
+        const members = Array.isArray(membersRes.data) ? membersRes.data : (membersRes.data.data || []);
         
         // Fetch relationships
         const relationshipsRes = await api.get('/api/family/all-relationships');

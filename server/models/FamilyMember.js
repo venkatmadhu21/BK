@@ -82,4 +82,4 @@ FamilyMemberSchema.index({ serNo: 1 });
 FamilyMemberSchema.index({ level: 1 });
 FamilyMemberSchema.index({ fatherSerNo: 1, motherSerNo: 1 });
 
-module.exports = mongoose.model('FamilyMember', FamilyMemberSchema);
+module.exports = mongoose.models.FamilyMember || mongoose.model('FamilyMember', FamilyMemberSchema);

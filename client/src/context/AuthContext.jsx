@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const getStoredToken = () =>
   (typeof window !== 'undefined' && (localStorage.getItem('token') || sessionStorage.getItem('token'))) || null;
@@ -90,9 +90,9 @@ export const AuthProvider = ({ children }) => {
   // Set auth token in axios header
   const setAuthToken = (token) => {
     if (token) {
-      axios.defaults.headers.common['x-auth-token'] = token;
+      api.defaults.headers.common['x-auth-token'] = token;
     } else {
-      delete axios.defaults.headers.common['x-auth-token'];
+      delete api.defaults.headers.common['x-auth-token'];
     }
   };
 
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const res = await axios.get('/api/auth/user');
+      const res = await api.get('/api/auth/user');
       dispatch({
         type: 'USER_LOADED',
         payload: res.data
@@ -118,24 +118,39 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register user
-  const register = async (formData) => {
+  const register = async (formData, remember = false) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const res = await axios.post('/api/auth/register', formData);
-      
+
+      const payload = { ...formData };
+      delete payload.confirmPassword; // Not required by backend
+
+      const res = await api.post('/api/auth/register', payload);
+
       dispatch({
         type: 'REGISTER_SUCCESS',
-        payload: res.data
+        payload: res.data,
+        remember
       });
+
+      setAuthToken(res.data.token);
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const validationErrors = error.response?.data?.errors;
+      const message =
+        error.response?.data?.message ||
+        validationErrors?.[0]?.msg ||
+        'Registration failed';
+
       dispatch({
         type: 'REGISTER_FAIL',
         payload: message
       });
-      return { success: false, message };
+
+      return { success: false, message, errors: validationErrors };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -143,13 +158,15 @@ export const AuthProvider = ({ children }) => {
   const login = async (formData, remember = false) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const res = await axios.post('/api/auth/login', formData);
+      const res = await api.post('/api/auth/login', formData);
       
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: res.data,
         remember
       });
+
+      setAuthToken(res.data.token);
 
       return { success: true };
     } catch (error) {
@@ -159,6 +176,8 @@ export const AuthProvider = ({ children }) => {
         payload: message
       });
       return { success: false, message };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 

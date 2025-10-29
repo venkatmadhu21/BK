@@ -184,12 +184,12 @@ const LoadingEffectsDemo = () => {
             </LoadingLink>
 
             <LoadingLink 
-              to="/history" 
-              loadingMessage="Loading History page..."
+              to="/media" 
+              loadingMessage="Loading Media page..."
               className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>History</span>
+              <span>Media</span>
             </LoadingLink>
 
             <LoadingLink 

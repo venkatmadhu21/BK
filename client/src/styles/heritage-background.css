@@ -1,286 +1,78 @@
-/* Heritage Background Patterns for Family Website */
+/* Heritage Background Styles */
 
-/* Base heritage background with multiple layers */
 .heritage-bg {
   position: relative;
-  background: linear-gradient(135deg, #fefefe 0%, #fdf6f0 50%, #fef7ed 100%);
   min-height: 100vh;
+  overflow: hidden;
 }
 
-/* Subtle paper texture overlay */
-.heritage-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 1px 1px, rgba(249, 115, 22, 0.08) 1px, transparent 0);
-  background-size: 20px 20px;
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Main pattern layer */
-.heritage-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    /* Floral motifs */
-    radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.03) 0%, transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(249, 115, 22, 0.02) 0%, transparent 20%),
-    radial-gradient(circle at 25% 80%, rgba(249, 115, 22, 0.025) 0%, transparent 18%),
-    radial-gradient(circle at 75% 85%, rgba(249, 115, 22, 0.02) 0%, transparent 22%),
-    
-    /* Geometric waves */
-    linear-gradient(45deg, transparent 30%, rgba(249, 115, 22, 0.01) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(249, 115, 22, 0.008) 50%, transparent 70%),
-    
-    /* Family tree branching lines */
-    linear-gradient(30deg, transparent 40%, rgba(249, 115, 22, 0.015) 42%, transparent 44%),
-    linear-gradient(-30deg, transparent 40%, rgba(249, 115, 22, 0.012) 42%, transparent 44%),
-    linear-gradient(60deg, transparent 60%, rgba(249, 115, 22, 0.01) 62%, transparent 64%),
-    linear-gradient(-60deg, transparent 60%, rgba(249, 115, 22, 0.008) 62%, transparent 64%);
-  
-  background-size: 
-    200px 200px,
-    180px 180px,
-    220px 220px,
-    190px 190px,
-    300px 300px,
-    280px 280px,
-    400px 400px,
-    380px 380px,
-    500px 500px,
-    480px 480px;
-  
-  background-position: 
-    0 0,
-    50px 50px,
-    100px 100px,
-    150px 150px,
-    0 0,
-    100px 100px,
-    0 0,
-    200px 200px,
-    0 0,
-    300px 300px;
-  
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 2;
-  animation: gentleFloat 20s ease-in-out infinite;
-}
-
-/* Gentle floating animation for patterns */
-@keyframes gentleFloat {
-  0%, 100% { 
-    transform: translateY(0px) translateX(0px);
-    opacity: 0.6;
-  }
-  25% { 
-    transform: translateY(-5px) translateX(2px);
-    opacity: 0.7;
-  }
-  50% { 
-    transform: translateY(-3px) translateX(-1px);
-    opacity: 0.5;
-  }
-  75% { 
-    transform: translateY(-7px) translateX(1px);
-    opacity: 0.65;
-  }
-}
-
-/* Warm gradient overlay for depth */
 .heritage-gradient-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(254, 247, 237, 0.4) 0%,
-    rgba(255, 251, 235, 0.2) 25%,
-    rgba(254, 243, 199, 0.3) 50%,
-    rgba(255, 251, 235, 0.2) 75%,
-    rgba(254, 247, 237, 0.4) 100%
-  );
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 247, 240, 0.95) 0%, rgba(255, 250, 246, 0.95) 50%, rgba(255, 231, 209, 0.95) 100%);
+  z-index: 1;
   pointer-events: none;
-  z-index: 3;
 }
 
-/* Content container with proper z-index */
 .heritage-content {
   position: relative;
   z-index: 10;
 }
 
-/* Enhanced card backgrounds for better readability */
-.heritage-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(249, 115, 22, 0.1);
-  box-shadow: 
-    0 4px 20px rgba(249, 115, 22, 0.08),
-    0 2px 10px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.heritage-card:hover {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 
-    0 8px 30px rgba(249, 115, 22, 0.12),
-    0 4px 15px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Subtle decorative elements */
 .heritage-decoration {
   position: absolute;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.05) 0%, transparent 70%);
-  border-radius: 50%;
   pointer-events: none;
-  z-index: 5;
+  opacity: 0.15;
+  z-index: 2;
+  animation: float 20s ease-in-out infinite;
 }
 
-.heritage-decoration:nth-child(1) {
-  top: 10%;
-  left: 5%;
-  animation: float 15s ease-in-out infinite;
-}
-
-.heritage-decoration:nth-child(2) {
-  top: 20%;
-  right: 8%;
-  animation: float 18s ease-in-out infinite reverse;
-}
-
-.heritage-decoration:nth-child(3) {
-  bottom: 15%;
-  left: 10%;
-  animation: float 12s ease-in-out infinite;
-}
-
-.heritage-decoration:nth-child(4) {
-  bottom: 25%;
-  right: 5%;
-  animation: float 16s ease-in-out infinite reverse;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .heritage-bg::after {
-    background-size: 
-      150px 150px,
-      130px 130px,
-      160px 160px,
-      140px 140px,
-      200px 200px,
-      180px 180px,
-      300px 300px,
-      280px 280px,
-      350px 350px,
-      330px 330px;
-  }
-  
-  .heritage-decoration {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-@media (max-width: 480px) {
-  .heritage-bg::after {
-    background-size: 
-      100px 100px,
-      90px 90px,
-      110px 110px,
-      95px 95px,
-      150px 150px,
-      140px 140px,
-      250px 250px,
-      230px 230px,
-      280px 280px,
-      260px 260px;
-  }
-  
-  .heritage-decoration {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-/* Special patterns for different sections */
-.heritage-section-hero {
-  background: linear-gradient(
-    135deg,
-    rgba(254, 247, 237, 0.8) 0%,
-    rgba(255, 251, 235, 0.6) 50%,
-    rgba(254, 243, 199, 0.7) 100%
-  );
-}
-
-.heritage-section-content {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(254, 247, 237, 0.7) 100%
-  );
-}
-
-/* Floating animation for decorative elements */
 @keyframes float {
-  0%, 100% { 
+  0%, 100% {
     transform: translateY(0px) rotate(0deg);
-    opacity: 0.3;
   }
-  50% { 
-    transform: translateY(-10px) rotate(5deg);
-    opacity: 0.5;
+  50% {
+    transform: translateY(30px) rotate(5deg);
   }
 }
 
-/* Enhanced text readability */
-.heritage-text {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+/* Floral corner patterns */
+.heritage-bg .heritage-decoration:nth-child(2) {
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at center, #f6a56f 0%, transparent 70%);
+  border-radius: 50% 0 50% 50%;
+  animation-delay: 0s;
 }
 
-.heritage-text-dark {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.heritage-bg .heritage-decoration:nth-child(3) {
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at center, #f5b88c 0%, transparent 70%);
+  border-radius: 0 50% 50% 50%;
+  animation-delay: 2s;
 }
 
-/* Subtle border patterns */
-.heritage-border {
-  border-image: linear-gradient(
-    45deg,
-    rgba(249, 115, 22, 0.1) 0%,
-    rgba(249, 115, 22, 0.05) 50%,
-    rgba(249, 115, 22, 0.1) 100%
-  ) 1;
+.heritage-bg .heritage-decoration:nth-child(4) {
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at center, #f8a76f 0%, transparent 70%);
+  border-radius: 50% 50% 0 50%;
+  animation-delay: 4s;
 }
 
-/* Warm glow effect for important elements */
-.heritage-glow {
-  box-shadow: 
-    0 0 20px rgba(249, 115, 22, 0.1),
-    0 0 40px rgba(249, 115, 22, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+.heritage-bg .heritage-decoration:nth-child(5) {
+  bottom: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at center, #f9b37d 0%, transparent 70%);
+  border-radius: 50% 50% 50% 0;
+  animation-delay: 6s;
 }
-
-.heritage-glow:hover {
-  box-shadow: 
-    0 0 30px rgba(249, 115, 22, 0.15),
-    0 0 60px rgba(249, 115, 22, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-

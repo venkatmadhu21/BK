@@ -18,6 +18,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import Scroller from '../components/Scroller';
 
 const CreateNewsModal = ({
   formData,
@@ -280,6 +281,8 @@ const News = () => {
   const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
   const newsRef = useRef(null);
 
   const categoryOptions = [
@@ -504,6 +507,42 @@ const News = () => {
 
   useEffect(() => {
     fetchNews({ category: selectedCategory });
+  }, []);
+
+  // Fetch upcoming events for scroller
+  useEffect(() => {
+    const fetchUpcomingEventsData = async () => {
+      setLoadingEvents(true);
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const response = await api.get('/api/events', {
+          params: {
+            status: 'Upcoming',
+            limit: 10,
+            sortBy: 'startDate',
+            sortOrder: 'asc'
+          }
+        });
+        
+        // Filter to only show events with startDate > today
+        const upcoming = (response.data.events || [])
+          .filter(event => {
+            const eventDate = new Date(event.startDate).toISOString().split('T')[0];
+            return eventDate > today;
+          })
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+          .slice(0, 10);
+        
+        setUpcomingEvents(upcoming);
+      } catch (err) {
+        console.error('Failed to fetch upcoming events:', err);
+        setUpcomingEvents([]);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchUpcomingEventsData();
   }, []);
 
   useEffect(() => {
@@ -836,6 +875,17 @@ const News = () => {
         <div className="heritage-decoration"></div>
         <div className="heritage-decoration"></div>
         <div className="heritage-content">
+        
+        {/* Show combined scroller for news and events - Sticky at top */}
+        {(newsData.length > 0 || upcomingEvents.length > 0) && (
+          <div className="sticky top-16 z-40 w-full">
+            <Scroller 
+              newsItems={newsData.slice(0, 5)}
+              eventItems={upcomingEvents.slice(0, 5)}
+            />
+          </div>
+        )}
+        
         {/* Floating Action Button */}
         <button 
           onClick={() => setCreateModalOpen(true)}

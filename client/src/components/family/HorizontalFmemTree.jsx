@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AlertCircle, GitBranch, Home, Loader2, Users, Heart } from 'lucide-react';
 import api from '../../utils/api';
+import { getProfileImageUrl } from '../../utils/profileImages';
 
 // Horizontal tree node component
 const HorizontalTreeNode = ({ node, level = 0 }) => {
@@ -36,14 +37,40 @@ const HorizontalTreeNode = ({ node, level = 0 }) => {
       {/* Current Member and Spouse */}
       <div className="flex flex-col items-center min-w-0">
         {/* Member Card */}
-        <div className="bg-white border-2 border-blue-300 rounded-lg shadow-md p-4 m-2 min-w-[200px] max-w-[250px]">
+        <div className="bg-white border-2 border-blue-300 rounded-lg shadow-md p-2 m-0.5 min-w-[140px] max-w-[180px]">
           <div className="text-center">
-            <h3 className="text-sm font-bold text-gray-800 mb-2 leading-tight">
+            {/* Profile Image */}
+            <div className="mb-1 flex justify-center">
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: getProfileImageUrl(node.profileImage, node.gender)
+                    ? `url(${getProfileImageUrl(node.profileImage, node.gender)})`
+                    : `linear-gradient(135deg, ${gender?.toLowerCase() === 'male' ? '#91d5ff' : '#ffadd2'} 0%, ${gender?.toLowerCase() === 'male' ? '#91d5ffdd' : '#ffadd2dd'} 100%)`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  border: '3px solid white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                }}
+              >
+                {!getProfileImageUrl(node.profileImage, node.gender) && displayName.charAt(0).toUpperCase()}
+              </div>
+            </div>
+
+            <h3 className="text-xs font-bold text-gray-800 mb-1 leading-tight">
               {displayName}
             </h3>
             
-            <div className="flex flex-wrap justify-center gap-1 mb-2">
-              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+            <div className="flex flex-wrap justify-center gap-0.5 mb-1">
+              <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                 #{serNo}
               </span>
               {gender && (
@@ -81,16 +108,42 @@ const HorizontalTreeNode = ({ node, level = 0 }) => {
 
         {/* Spouse Card (if exists) */}
         {(spouse || spouseSerNo) && (
-          <div className="bg-white border-2 border-pink-300 rounded-lg shadow-md p-3 m-2 min-w-[180px] max-w-[220px]">
+          <div className="bg-white border-2 border-pink-300 rounded-lg shadow-md p-1.5 m-0.5 min-w-[120px] max-w-[160px]">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-2">
+              <div className="flex items-center justify-center gap-1 mb-1">
                 <Heart size={14} className="text-pink-500" />
                 <span className="text-xs font-medium text-gray-600">Spouse</span>
               </div>
               
               {spouse ? (
                 <>
-                  <h4 className="text-sm font-semibold text-gray-800 mb-2">
+                  {/* Spouse Profile Image */}
+                  <div className="mb-1 flex justify-center">
+                    <div
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: '50%',
+                        background: getProfileImageUrl(spouse.profileImage, spouse.gender)
+                          ? `url(${getProfileImageUrl(spouse.profileImage, spouse.gender)})`
+                          : `linear-gradient(135deg, ${spouse.gender?.toLowerCase() === 'male' ? '#91d5ff' : '#ffadd2'} 0%, ${spouse.gender?.toLowerCase() === 'male' ? '#91d5ffdd' : '#ffadd2dd'} 100%)`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        border: '2px solid white',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '16px',
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {!getProfileImageUrl(spouse.profileImage, spouse.gender) && (spouse.fullName || spouse.name || '').charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+
+                  <h4 className="text-xs font-semibold text-gray-800 mb-1">
                     {spouse.fullName || spouse.name || `#${spouse.serNo}`}
                   </h4>
                   <Link
@@ -118,7 +171,7 @@ const HorizontalTreeNode = ({ node, level = 0 }) => {
       {hasChildren && (
         <div className="flex items-center">
           {/* Horizontal line to children */}
-          <div className="w-8 h-0.5 bg-gray-400 mx-2"></div>
+          <div className="w-3 h-0.5 bg-gray-400 mx-1"></div>
           
           {/* Children container */}
           <div className="flex flex-col items-start">

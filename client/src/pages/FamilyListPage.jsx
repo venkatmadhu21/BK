@@ -22,35 +22,44 @@ const FamilyListPage = () => {
     const fetchFamilyMembers = async () => {
       try {
         setLoading(true);
-        // Use the original API endpoint that uses members collection
+        // Fetch from members collection endpoint
         const res = await api.get('/api/family/members');
         
+        // Get data from response (backend now returns flat, transformed data)
+        const membersData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+        
+        // Ensure gender is capitalized for display
+        const normalizedMembers = membersData.map(member => ({
+          ...member,
+          gender: member.gender ? member.gender.charAt(0).toUpperCase() + member.gender.slice(1) : ''
+        }));
+        
         // Extract unique levels and vanshes
-        const uniqueLevels = [...new Set(res.data.map(member => member.level))].sort((a, b) => a - b);
-        const uniqueVanshes = [...new Set(res.data.map(member => member.vansh).filter(Boolean))].sort();
+        const uniqueLevels = [...new Set(normalizedMembers.map(member => member.level))].filter(Boolean).sort((a, b) => a - b);
+        const uniqueVanshes = [...new Set(normalizedMembers.map(member => member.vansh).filter(Boolean))].sort();
         
         // Calculate statistics
         const statistics = {
-          total: res.data.length,
-          male: res.data.filter(m => m.gender === 'Male').length,
-          female: res.data.filter(m => m.gender === 'Female').length,
-          withSpouse: res.data.filter(m => m.spouse && m.spouse.serNo).length,
-          withChildren: res.data.filter(m => m.childrenSerNos && m.childrenSerNos.length > 0).length,
-          totalChildren: res.data.reduce((sum, m) => sum + (m.sonDaughterCount || 0), 0),
+          total: normalizedMembers.length,
+          male: normalizedMembers.filter(m => m.gender?.toLowerCase() === 'male').length,
+          female: normalizedMembers.filter(m => m.gender?.toLowerCase() === 'female').length,
+          withSpouse: normalizedMembers.filter(m => m.spouseSerNo).length,
+          withChildren: normalizedMembers.filter(m => m.childrenSerNos && m.childrenSerNos.length > 0).length,
+          totalChildren: normalizedMembers.reduce((sum, m) => sum + (m.childrenSerNos?.length || 0), 0),
           byLevel: uniqueLevels.reduce((acc, level) => {
-            acc[level] = res.data.filter(m => m.level === level).length;
+            acc[level] = normalizedMembers.filter(m => m.level === level).length;
             return acc;
           }, {}),
           byVansh: uniqueVanshes.reduce((acc, vansh) => {
-            acc[vansh] = res.data.filter(m => m.vansh === vansh).length;
+            acc[vansh] = normalizedMembers.filter(m => m.vansh === vansh).length;
             return acc;
           }, {})
         };
         
         // Set a minimum loading time of 1 second for better UX
         setTimeout(() => {
-          setMembers(res.data);
-          setFilteredMembers(res.data);
+          setMembers(normalizedMembers);
+          setFilteredMembers(normalizedMembers);
           setLevels(uniqueLevels);
           setVanshes(uniqueVanshes);
           setStats(statistics);
@@ -86,7 +95,7 @@ const FamilyListPage = () => {
     }
     
     if (selectedGender) {
-      filtered = filtered.filter(member => member.gender === selectedGender);
+      filtered = filtered.filter(member => member.gender?.toLowerCase() === selectedGender?.toLowerCase());
     }
     
     if (selectedVansh) {
@@ -104,9 +113,18 @@ const FamilyListPage = () => {
         setLoading(true);
         const res = await api.get(`/api/family/members?level=${level}`);
         
+        // Get data from response
+        const membersData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+        
+        // Ensure gender is capitalized for display
+        const normalizedMembers = membersData.map(member => ({
+          ...member,
+          gender: member.gender ? member.gender.charAt(0).toUpperCase() + member.gender.slice(1) : ''
+        }));
+        
         // Set a minimum loading time of 1 second for better UX
         setTimeout(() => {
-          setFilteredMembers(res.data);
+          setFilteredMembers(normalizedMembers);
           setLoading(false);
         }, 1000);
       } catch (err) {
@@ -217,8 +235,8 @@ const FamilyListPage = () => {
                 onChange={(e) => handleLevelChange(e.target.value)}
               >
                 <option value="">All Levels</option>
-                {levels.map(level => (
-                  <option key={level} value={level}>Level {level}</option>
+                {levels.map((level, idx) => (
+                  <option key={`level-${idx}-${level}`} value={level}>Level {level}</option>
                 ))}
               </select>
             </div>
@@ -250,8 +268,8 @@ const FamilyListPage = () => {
                 onChange={(e) => setSelectedVansh(e.target.value)}
               >
                 <option value="">All Vansh</option>
-                {vanshes.map(vansh => (
-                  <option key={vansh} value={vansh}>{vansh}</option>
+                {vanshes.filter(Boolean).map((vansh, idx) => (
+                  <option key={`vansh-${idx}-${vansh}`} value={vansh}>{vansh}</option>
                 ))}
               </select>
             </div>

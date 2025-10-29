@@ -5,7 +5,8 @@ import { useLanguage } from '../context/LanguageContext';
 import shivvImage from '../assets/images/shivv.webp';
 import templeImage from '../assets/images/temple.jpg';
 
-const VyadeshwarTemple = () => {
+// Calm temple-vibe redesign. Content preserved exactly as provided by the user.
+export default function VyadeshwarTemple() {
   const { language } = useLanguage();
 
   const content = {
@@ -17,21 +18,30 @@ const VyadeshwarTemple = () => {
       established: "Around 1200 AD (Temple: 200-250 years old)",
       description: `Shree Vyadeshwar Temple in Guhagar is located very close to the bus stand, and the Guhagar market is situated around it. Guhagar is a village in Ratnagiri district and is the headquarters of a taluka. Guhagar is about 45 kilometers away from Chiplun.
 
+
 Although Guhagar was founded around 1200 AD, Shri Vyadeshwar Temple is about 200/250 years old. The Shivalinga in the Vyadeshwar Temple is very ancient and self-sufficient.
+
 
 After Jamadagniputra Parashurama created Konkanbhoomi, many sages came and stayed in that area. Among them, Vyad Rishi founded it, hence it was called Vyadeshwar.
 
+
 This temple has walls on all four sides and has entrances on the north, south and east. Although the temple faces east, the entrance facing south is mainly used.
+
 
 Shri Vyadeshwar is the family head of most of the Chitpavan Konkanstha Brahmin families. This Vyadeshwar is the family head of many Joglekar families.
 
+
 There is a Gak lake near the temple and there is also a temple of Vitthal-Rakhumai. There is open space in the temple premises and the temple is of the Panchayat system.
+
 
 Small temples like Shri Surya, Shri Ganapati, Shri Ambika and Shri Lakshmi-Vishnu are located on all four sides of Shri Vyadeshwar temple. The temple's Upadhyaya helps the devotees in religious activities.
 
+
 A special festival is held here on Kartiki Gakdashila. There is a five-day Vyadeshwar festival in the month of Magh. Katha-kirtan programs are held during the festival. There is a palanquin procession.
 
+
 Rudrabhishek is continuously performed on the Vyadeshwar temple during Chaturmas. A silver idol of Shiva is kept in the temple on the days of Ashadhi, Kartiki Gakdashi and Mahashivratri.
+
 
 Many devotees come to have darshan of Shri Vyadeshwar on Mahashivratri, Shravan and Kartik Mondays.`,
       sections: {
@@ -55,21 +65,30 @@ Many devotees come to have darshan of Shri Vyadeshwar on Mahashivratri, Shravan 
       established: "सुमारे १२०० इ.स. (मंदिर: २००-२५० वर्षे जुने)",
       description: `गुहागरमधील श्री व्याडेश्वर मंदिर बस स्थानकाच्या अगदी जवळ आहे आणि गुहागर बाजार त्याच्या आजूबाजूला वसलेला आहे. गुहागर हे रत्नागिरी जिल्ह्यातील एक गाव आहे आणि तालुक्याचे मुख्यालय आहे. गुहागर चिपळूणपासून सुमारे ४५ किलोमीटर अंतरावर आहे.
 
+
 गुहागरची स्थापना सुमारे १२०० इ.स.च्या आसपास झाली असली तरी श्री व्याडेश्वर मंदिर सुमारे २००/२५० वर्षे जुने आहे. व्याडेश्वर मंदिरातील शिवलिंग अतिशय प्राचीन आणि स्वयंभू आहे.
+
 
 जमदग्निपुत्र परशुरामाने कोकणभूमी निर्माण केल्यानंतर अनेक ऋषी आले आणि त्या भागात राहिले. त्यापैकी व्याड ऋषींनी त्याची स्थापना केली, म्हणून त्याला व्याडेश्वर म्हटले गेले.
 
+
 या मंदिराला चारही बाजूंना भिंती आहेत आणि उत्तर, दक्षिण आणि पूर्वेला प्रवेशद्वार आहेत. मंदिराचे तोंड पूर्वेकडे असले तरी दक्षिणेकडील प्रवेशद्वाराचा मुख्यतः वापर केला जातो.
+
 
 श्री व्याडेश्वर हे बहुतेक चितपावन कोकणस्थ ब्राह्मण कुटुंबांचे कुलदैवत आहेत. हे व्याडेश्वर अनेक जोगळेकर कुटुंबांचे कुलदैवत आहेत.
 
+
 मंदिराजवळ गाक तलाव आहे आणि विठ्ठल-रखुमाईचे मंदिरही आहे. मंदिराच्या आवारात मोकळी जागा आहे आणि मंदिर पंचायत प्रणालीचे आहे.
+
 
 श्री व्याडेश्वर मंदिराच्या चारही बाजूंना श्री सूर्य, श्री गणपती, श्री अंबिका आणि श्री लक्ष्मी-विष्णू यांसारखी छोटी मंदिरे आहेत. मंदिराचे उपाध्याय भक्तांना धार्मिक कार्यात मदत करतात.
 
+
 कार्तिकी गकदशीला येथे विशेष उत्सव होतो. माघ महिन्यात पाच दिवसांचा व्याडेश्वर उत्सव होतो. उत्सवात कथा-कीर्तन कार्यक्रम होतात. पालखी मिरवणूक काढली जाते.
 
+
 चातुर्मास्यात व्याडेश्वर मंदिरावर सतत रुद्राभिषेक केला जातो. आषाढी, कार्तिकी गकदशी आणि महाशिवरात्रीच्या दिवशी मंदिरात शिवाची चांदीची मूर्ती ठेवली जाते.
+
 
 महाशिवरात्री, श्रावण आणि कार्तिक सोमवारी श्री व्याडेश्वराचे दर्शन घेण्यासाठी अनेक भक्त येतात.`,
       sections: {
@@ -90,267 +109,181 @@ Many devotees come to have darshan of Shri Vyadeshwar on Mahashivratri, Shravan 
   const currentContent = content[language] || content.en;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50/30 to-orange-50 relative overflow-hidden">
-      {/* Enhanced Background Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-amber-300/15 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-amber-200/20 to-orange-300/15 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-orange-100/30 to-amber-100/20 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-l from-amber-200/25 to-orange-200/20 rounded-full blur-xl"></div>
-        {/* Sacred Geometry Pattern */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-5">
-          <div className="w-full h-full border-2 border-orange-300 rounded-full animate-spin" style={{animationDuration: '20s'}}></div>
-          <div className="absolute inset-4 border border-amber-300 rounded-full animate-spin" style={{animationDuration: '15s', animationDirection: 'reverse'}}></div>
-          <div className="absolute inset-8 border border-orange-400 rounded-full animate-spin" style={{animationDuration: '25s'}}></div>
-        </div>
-      </div>
-
-      {/* Enhanced Header */}
-      <div className="relative bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 text-white py-8 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-800/20 to-amber-800/20"></div>
-        <div className="relative container mx-auto px-4">
-          <Link
-            to="/"
-            className="inline-flex items-center text-orange-100 hover:text-white transition-all duration-300 mb-6 group"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="font-medium">{language === 'mr' ? 'मुख्य पृष्ठावर परत' : 'Back to Home'}</span>
-          </Link>
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 bg-gradient-to-r from-white to-orange-100 bg-clip-text text-transparent leading-tight">
-              {currentContent.title}
-            </h1>
-            <p className="text-orange-100 text-xl md:text-2xl font-light max-w-3xl mx-auto leading-relaxed">
-              {currentContent.subtitle}
-            </p>
-            {/* Decorative Line */}
-            <div className="mt-6 flex items-center justify-center">
-              <div className="h-px bg-gradient-to-r from-transparent via-orange-200 to-transparent w-24"></div>
-              <div className="mx-4 w-3 h-3 bg-gradient-to-r from-orange-300 to-amber-300 rounded-full animate-pulse"></div>
-              <div className="h-px bg-gradient-to-r from-transparent via-orange-200 to-transparent w-24"></div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 text-gray-900 antialiased">
+      {/* Subtle patterned background using pseudo elements via Tailwind utilities */}
+      <div className="relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          {/* Top navigation */}
+          <div className="flex items-center gap-4 mb-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-amber-800 hover:text-amber-900 transition">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="text-sm font-medium">{language === 'mr' ? 'मुख्य पृष्ठावर परत' : 'Back to Home'}</span>
+            </Link>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Images */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
-              {/* Shivv Image */}
-              <div className="group relative bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-orange-100/50">
-                {/* Glow Effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-orange-400/20 via-amber-400/20 to-orange-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          {/* Hero area */}
+          <header className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div className="lg:col-span-2">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-tight text-amber-900">
+                {currentContent.title}
+              </h1>
+              <p className="mt-3 text-lg text-amber-800/90 max-w-3xl">{currentContent.subtitle}</p>
 
-                <div className="relative bg-white rounded-3xl overflow-hidden">
-                  <div className="aspect-square relative overflow-hidden">
-                    <img
-                      src={shivvImage}
-                      alt="Lord Shiva"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                    <div className="hidden w-full h-full bg-gradient-to-br from-orange-400 to-amber-600 flex items-center justify-center text-white">
-                      <div className="text-center">
-                        <div className="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <p className="text-xl font-bold drop-shadow-lg">Lord Shiva</p>
-                      </div>
-                    </div>
-                    {/* Overlay Effects */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-orange-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="text-white text-6xl filter drop-shadow-2xl animate-pulse">🕉️</div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 text-center bg-gradient-to-b from-white to-orange-50/30">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-700 transition-colors duration-300">
-                      {language === 'mr' ? 'भगवान शिव' : 'Lord Shiva'}
-                    </h3>
-                    <div className="w-12 h-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
+              <div className="mt-6 flex flex-wrap gap-3 items-center">
+                <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm">
+                  <MapPin className="w-4 h-4 text-amber-800" />
+                  <span className="text-sm font-medium">{currentContent.location}</span>
                 </div>
-              </div>
-
-              {/* Temple Image */}
-              <div className="group relative bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-orange-100/50">
-                {/* Glow Effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/20 via-orange-400/20 to-amber-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                <div className="relative bg-white rounded-3xl overflow-hidden">
-                  <div className="aspect-video relative overflow-hidden">
-                    <img
-                      src={templeImage}
-                      alt="Vyadeshwar Temple"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                    <div className="hidden w-full h-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white">
-                      <div className="text-center">
-                        <div className="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <p className="text-xl font-bold drop-shadow-lg">Vyadeshwar Temple</p>
-                      </div>
-                    </div>
-                    {/* Overlay Effects */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="text-white text-6xl filter drop-shadow-2xl animate-pulse">🙏</div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 text-center bg-gradient-to-b from-white to-amber-50/30">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-amber-700 transition-colors duration-300">
-                      {language === 'mr' ? 'व्याडेश्वर मंदिर' : 'Vyadeshwar Temple'}
-                    </h3>
-                    <div className="w-12 h-1 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
+                <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm">
+                  <Clock className="w-4 h-4 text-amber-800" />
+                  <span className="text-sm font-medium">{currentContent.distance}</span>
                 </div>
-              </div>
-
-              {/* Quick Info */}
-              <div className="group bg-white rounded-3xl shadow-xl p-8 border border-orange-100/50 hover:shadow-2xl transition-all duration-500">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-700 transition-colors duration-300">
-                    {language === 'mr' ? 'त्वरित माहिती' : 'Quick Information'}
-                  </h3>
-                  <div className="w-16 h-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full mx-auto"></div>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex items-start p-4 rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all duration-300 group/item">
-                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 group-hover/item:scale-110 transition-transform duration-300">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-orange-700 mb-1">{language === 'mr' ? 'स्थान' : 'Location'}</p>
-                      <p className="font-semibold text-gray-800 leading-relaxed">{currentContent.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 transition-all duration-300 group/item">
-                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 group-hover/item:scale-110 transition-transform duration-300">
-                      <Clock className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-amber-700 mb-1">{language === 'mr' ? 'अंतर' : 'Distance'}</p>
-                      <p className="font-semibold text-gray-800 leading-relaxed">{currentContent.distance}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start p-4 rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all duration-300 group/item">
-                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 group-hover/item:scale-110 transition-transform duration-300">
-                      <Calendar className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-orange-700 mb-1">{language === 'mr' ? 'स्थापना' : 'Established'}</p>
-                      <p className="font-semibold text-gray-800 leading-relaxed">{currentContent.established}</p>
-                    </div>
-                  </div>
+                <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm">
+                  <Calendar className="w-4 h-4 text-amber-800" />
+                  <span className="text-sm font-medium">{currentContent.established}</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column - Content */}
-          <div className="lg:col-span-2">
-            <div className="space-y-8">
-              {/* Main Description */}
-              <div className="group bg-white rounded-3xl shadow-xl p-8 md:p-10 border border-orange-100/50 hover:shadow-2xl transition-all duration-500">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-3 group-hover:text-orange-700 transition-colors duration-300">
-                    {language === 'mr' ? 'मंदिराचे वर्णन' : 'Temple Description'}
-                  </h2>
-                  <div className="w-20 h-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full mx-auto"></div>
+            {/* Right: calm portrait */}
+            <div className="lg:col-span-1 flex items-start justify-end">
+              <figure className="w-48 md:w-56 rounded-2xl overflow-hidden shadow-lg border border-amber-100 bg-white">
+                <img src={templeImage} alt="Vyadeshwar Temple" className="w-full h-full object-cover aspect-[4/5]" />
+                <figcaption className="p-3 text-xs text-amber-700/90 bg-gradient-to-t from-white/80 to-transparent">{language === 'mr' ? 'व्याडेश्वर मंदिर' : 'Vyadeshwar Temple'}</figcaption>
+              </figure>
+            </div>
+          </header>
+
+          {/* Main layout: left column (images + quick info), right column content */}
+          <main className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left column: images and quick facts */}
+            <aside className="lg:col-span-1 space-y-6">
+              <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-amber-100">
+                <img src={shivvImage} alt="Lord Shiva" className="w-full h-64 object-cover" />
+                <div className="p-4">
+                  <h4 className="text-lg font-semibold text-amber-900">{language === 'mr' ? 'भगवान शिव' : 'Lord Shiva'}</h4>
+                  <p className="mt-2 text-sm text-amber-800/90">{language === 'mr' ? 'आदरणीय' : 'Revered'}</p>
                 </div>
-                <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-                  {currentContent.description.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="mb-6 text-lg leading-8 hover:text-gray-800 transition-colors duration-300">
-                      {paragraph}
-                    </p>
+              </div>
+
+              <div className="rounded-2xl p-4 bg-white shadow-sm border border-amber-50">
+                <h5 className="text-sm font-semibold text-amber-900">{language === 'mr' ? 'त्वरित माहिती' : 'Quick Information'}</h5>
+                <dl className="mt-3 space-y-3 text-sm text-amber-800/90">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 mt-1 text-amber-800" />
+                    <div>
+                      <dt className="font-medium">{language === 'mr' ? 'स्थान' : 'Location'}</dt>
+                      <dd className="leading-tight">{currentContent.location}</dd>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 mt-1 text-amber-800" />
+                    <div>
+                      <dt className="font-medium">{language === 'mr' ? 'अंतर' : 'Distance'}</dt>
+                      <dd className="leading-tight">{currentContent.distance}</dd>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 mt-1 text-amber-800" />
+                    <div>
+                      <dt className="font-medium">{language === 'mr' ? 'स्थापना' : 'Established'}</dt>
+                      <dd className="leading-tight">{currentContent.established}</dd>
+                    </div>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Soft callout for visiting */}
+              <div className="rounded-2xl p-4 bg-amber-50 border border-amber-100 text-amber-900 shadow-sm">
+                <h6 className="font-semibold">{currentContent.sections.visiting}</h6>
+                <p className="text-sm mt-2">{currentContent.visitingText}</p>
+              </div>
+            </aside>
+
+            {/* Right column: content cards */}
+            <section className="lg:col-span-2 space-y-6">
+              <article className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-amber-100">
+                <h2 className="text-2xl font-serif font-bold text-amber-900 mb-3">{language === 'mr' ? 'मंदिराचे वर्णन' : 'Temple Description'}</h2>
+                <div className="prose prose-lg max-w-none text-amber-800">
+                  {currentContent.description.split('\n\n').map((p, i) => (
+                    <p key={i} className="leading-relaxed">{p}</p>
                   ))}
                 </div>
-              </div>
+              </article>
 
-              {/* Sections */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* History */}
-                <div className="group bg-white rounded-3xl shadow-xl p-8 border border-orange-100/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center group-hover:text-orange-700 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                      <Calendar className="w-6 h-6 text-white" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-2xl bg-white p-6 shadow-sm border border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-amber-800" />
                     </div>
-                    <span>{currentContent.sections.history}</span>
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">{currentContent.historyText}</p>
+                    <div>
+                      <h3 className="text-lg font-semibold text-amber-900">{currentContent.sections.history}</h3>
+                      <p className="mt-2 text-amber-800 text-sm">{currentContent.historyText}</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Architecture */}
-                <div className="group bg-white rounded-3xl shadow-xl p-8 border border-amber-100/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center group-hover:text-amber-700 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="rounded-2xl bg-white p-6 shadow-sm border border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-800" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2h8v8H6V6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span>{currentContent.sections.architecture}</span>
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">{currentContent.architectureText}</p>
-                </div>
-
-                {/* Significance */}
-                <div className="group bg-white rounded-3xl shadow-xl p-8 border border-orange-100/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center group-hover:text-orange-700 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                      <Users className="w-6 h-6 text-white" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-amber-900">{currentContent.sections.architecture}</h3>
+                      <p className="mt-2 text-amber-800 text-sm">{currentContent.architectureText}</p>
                     </div>
-                    <span>{currentContent.sections.significance}</span>
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">{currentContent.significanceText}</p>
+                  </div>
                 </div>
 
-                {/* Festivals */}
-                <div className="group bg-white rounded-3xl shadow-xl p-8 border border-amber-100/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center group-hover:text-amber-700 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="rounded-2xl bg-white p-6 shadow-sm border border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-amber-800" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-amber-900">{currentContent.sections.significance}</h3>
+                      <p className="mt-2 text-amber-800 text-sm">{currentContent.significanceText}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-6 shadow-sm border border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-800" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span>{currentContent.sections.festivals}</span>
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">{currentContent.festivalsText}</p>
+                    <div>
+                      <h3 className="text-lg font-semibold text-amber-900">{currentContent.sections.festivals}</h3>
+                      <p className="mt-2 text-amber-800 text-sm">{currentContent.festivalsText}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Visiting Information */}
-              <div className="group bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100 rounded-3xl shadow-xl p-8 md:p-10 border border-orange-200/50 hover:shadow-2xl transition-all duration-500">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center group-hover:text-orange-800 transition-colors duration-300">
-                  <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <MapPin className="w-7 h-7 text-white" />
+              {/* Footer call-to-action */}
+              <div className="rounded-2xl p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 text-amber-900 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h4 className="font-serif text-xl font-bold">Plan your visit</h4>
+                    <p className="text-sm mt-1">Best time to visit: Mahashivratri, Shravan Mondays, Kartik Mondays.</p>
                   </div>
-                  <span>{currentContent.sections.visiting}</span>
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-lg">{currentContent.visitingText}</p>
+                  <div className="flex items-center gap-3">
+                    <Link to="/" className="inline-flex items-center px-4 py-2 rounded-md bg-amber-800 text-white text-sm shadow-sm hover:bg-amber-900 transition">{language === 'mr' ? 'परत जा' : 'Go back'}</Link>
+                    <a href={`https://www.google.com/maps/search/${encodeURIComponent(currentContent.location)}`} target="_blank" rel="noreferrer" className="inline-flex items-center px-4 py-2 rounded-md border border-amber-200 text-amber-800 text-sm hover:bg-amber-100 transition">{language === 'mr' ? 'नकाशा' : 'View on Map'}</a>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </section>
+          </main>
         </div>
       </div>
     </div>
   );
-};
-
-export default VyadeshwarTemple;
+}

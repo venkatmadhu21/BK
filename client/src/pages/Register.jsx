@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from 'lucide-react';
+import '../styles/heritage-background.css';
 
 const Register = () => {
   const { register, isAuthenticated, error, clearErrors } = useAuth();
@@ -26,10 +27,8 @@ const Register = () => {
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
+    navigate('/family-form');
+  }, [navigate]);
 
   // Separate useEffect for clearing errors on component mount
   useEffect(() => {
@@ -61,34 +60,48 @@ const Register = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleBackendErrors = (result) => {
+    if (result.errors && Array.isArray(result.errors)) {
+      const fieldErrors = {};
+      result.errors.forEach((errorItem) => {
+        if (errorItem.path) {
+          fieldErrors[errorItem.path] = errorItem.msg;
+        }
+      });
+      setValidationErrors((prev) => ({ ...prev, ...fieldErrors }));
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    
-    const result = await register({
-      firstName,
-      lastName,
-      email,
-      password,
-      phone,
-      dateOfBirth,
-      gender,
-      occupation
-    });
-    
-    if (result.success) {
-      navigate('/dashboard');
+
+    if (!validateForm()) {
+      return;
     }
-    
+
+    setLoading(true);
+    clearErrors();
+
+    const result = await register(formData);
+
+    if (result.success) {
+      navigate('/family-form');
+    } else {
+      setLoading(false);
+      handleBackendErrors(result);
+    }
+
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 xs:py-12 px-3 xs:px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full space-y-6 xs:space-y-8">
+    <div className="heritage-bg min-h-screen flex items-center justify-center py-8 xs:py-12 px-3 xs:px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-content max-w-2xl w-full space-y-6 xs:space-y-8">
         <div>
           <h2 className="mt-4 xs:mt-6 text-center text-2xl xs:text-3xl font-bold text-gray-900">
             {t('auth.joinFamily')}

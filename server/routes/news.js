@@ -11,6 +11,8 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     const { category, page = 1, limit = 10 } = req.query;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit) || 10));
     const query = { isPublished: true };
     
     if (category && category !== 'all') {
@@ -19,23 +21,22 @@ router.get('/', auth, async (req, res) => {
 
     const news = await News.find(query)
       .populate('author', 'firstName lastName profilePicture')
-      .populate('likes.user', 'firstName lastName')
-      .populate('comments.user', 'firstName lastName profilePicture')
       .sort({ priority: -1, publishDate: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(limitNum)
+      .skip((pageNum - 1) * limitNum)
+      .lean();
 
     const total = await News.countDocuments(query);
 
     res.json({
       news,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limitNum),
+      currentPage: pageNum,
       total
     });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send('Server error');
+    console.error('News fetch error:', error);
+    res.status(500).json({ message: 'Failed to fetch news', error: error.message });
   }
 });
 

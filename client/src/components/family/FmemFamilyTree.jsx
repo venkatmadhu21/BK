@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { AlertCircle, GitBranch, Home, Loader2, Users } from 'lucide-react';
 import api from '../../utils/api';
 
-// Simple recursive renderer for FamilyMember-based trees
+// Simple recursive renderer for Members collection-based trees
 const TreeNode = ({ node }) => {
   if (!node) {
     return null;
@@ -11,24 +11,21 @@ const TreeNode = ({ node }) => {
 
   const {
     serNo,
-    firstName,
-    middleName,
-    lastName,
-    name,
-    fullName,
-    spouse,
-    spouseSerNo,
-    gender,
+    firstName = '',
+    middleName = '',
+    lastName = '',
+    gender = '',
     level,
-    vansh,
-    maritalInfo,
+    vansh = '',
+    spouseSerNo,
     children = []
   } = node;
 
-  // Build display name from available fields
-  const displayName = name || fullName || 
-    [firstName, middleName, lastName].filter(Boolean).join(' ') || 
-    `Member #${serNo || 'Unknown'}`;
+  // Build display name from fields
+  const displayName = [firstName, middleName, lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim() || `Member #${serNo || 'Unknown'}`;
 
   return (
     <li className="mb-4">
@@ -55,7 +52,7 @@ const TreeNode = ({ node }) => {
                   Level {level}
                 </span>
               )}
-              {maritalInfo?.married && (
+              {spouseSerNo && (
                 <span className="inline-flex items-center px-2 py-1 bg-pink-100 text-pink-700 rounded-full">
                   Married
                 </span>
@@ -73,24 +70,15 @@ const TreeNode = ({ node }) => {
           </div>
         </div>
 
-        {(spouse || spouseSerNo) && (
+        {spouseSerNo && (
           <div className="mt-3 text-sm text-gray-600">
             <span className="font-medium text-gray-700">Spouse:</span>{' '}
-            {spouse ? (
-              <Link
-                to={`/family/member/${spouse.serNo}`}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                {spouse.fullName || spouse.name || `#${spouse.serNo}`}
-              </Link>
-            ) : (
-              <Link
-                to={`/family/member/${spouseSerNo}`}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                #{spouseSerNo}
-              </Link>
-            )}
+            <Link
+              to={`/family/member/${spouseSerNo}`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              #{spouseSerNo}
+            </Link>
           </div>
         )}
 

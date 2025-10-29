@@ -35,6 +35,11 @@ function getId(person, key) {
   return toInt(person && person[key]);
 }
 
+function getGender(person) {
+  if (!person) return undefined;
+  return person.personalDetails?.gender || person.gender;
+}
+
 function getChildren(person, membersById) {
   const ids = (person && person.childrenSerNos) || [];
   const normIds = ids.map(toInt).filter((x) => x !== null);
@@ -93,13 +98,13 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
 
   // Children
   for (const child of getChildren(person, membersById)) {
-    if ((child && child.gender) === 'Male') addRelation('Son', child);
+    if (getGender(child) === 'male') addRelation('Son', child);
     else addRelation('Daughter', child);
   }
 
   // Siblings
   for (const sib of getSiblings(person, membersById)) {
-    if ((sib && sib.gender) === 'Male') addRelation('Brother', sib);
+    if (getGender(sib) === 'male') addRelation('Brother', sib);
     else addRelation('Sister', sib);
   }
 
@@ -107,7 +112,7 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
   const sId = getId(person, 'spouseSerNo');
   if (membersById.has(sId)) {
     const spouse = membersById.get(sId);
-    if ((spouse && spouse.gender) === 'Male') addRelation('Husband', spouse);
+    if (getGender(spouse) === 'male') addRelation('Husband', spouse);
     else addRelation('Wife', spouse);
   }
 
@@ -130,7 +135,7 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
   // Grandchildren
   for (const child of getChildren(person, membersById)) {
     for (const grandchild of getChildren(child, membersById)) {
-      if ((grandchild && grandchild.gender) === 'Male') {
+      if (getGender(grandchild) === 'male') {
         addRelation('Grandson', grandchild);
       } else {
         addRelation('Granddaughter', grandchild);
@@ -157,25 +162,25 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
       if (cid === null || cid === pId || !membersById.has(cid)) continue;
 
       const relative = membersById.get(cid);
-      const rGender = relative && relative.gender;
+      const rGender = getGender(relative);
 
-      if (rGender === 'Male') {
-        addRelation(paternal ? 'Uncle (Father’s brother)' : 'Uncle (Mother’s brother)', relative);
+      if (rGender === 'male') {
+        addRelation(paternal ? 'Uncle (Father\'s brother)' : 'Uncle (Mother\'s brother)', relative);
 
         const rSp = getId(relative, 'spouseSerNo');
         if (membersById.has(rSp)) {
           addRelation(
-            paternal ? 'Aunt (Father’s brother’s wife)' : 'Aunt (Mother’s brother’s wife)',
+            paternal ? 'Aunt (Father\'s brother\'s wife)' : 'Aunt (Mother\'s brother\'s wife)',
             membersById.get(rSp)
           );
         }
       } else {
-        addRelation(paternal ? 'Aunt (Father’s sister)' : 'Aunt (Mother’s sister)', relative);
+        addRelation(paternal ? 'Aunt (Father\'s sister)' : 'Aunt (Mother\'s sister)', relative);
 
         const rSp = getId(relative, 'spouseSerNo');
         if (membersById.has(rSp)) {
           addRelation(
-            paternal ? 'Uncle (Father’s sister’s husband)' : 'Uncle (Mother’s sister’s husband)',
+            paternal ? 'Uncle (Father\'s sister\'s husband)' : 'Uncle (Mother\'s sister\'s husband)',
             membersById.get(rSp)
           );
         }
@@ -185,8 +190,8 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
       for (const c of getChildren(relative, membersById)) {
         const label =
           paternal
-            ? ((c && c.gender) === 'Male' ? 'Cousin (Paternal, Male)' : 'Cousin (Paternal, Female)')
-            : ((c && c.gender) === 'Male' ? 'Cousin (Maternal, Male)' : 'Cousin (Maternal, Female)');
+            ? (getGender(c) === 'male' ? 'Cousin (Paternal, Male)' : 'Cousin (Paternal, Female)')
+            : (getGender(c) === 'male' ? 'Cousin (Maternal, Male)' : 'Cousin (Maternal, Female)');
         addRelation(label, c);
       }
     }
@@ -195,10 +200,10 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
   // Nephews/Nieces
   for (const sib of getSiblings(person, membersById)) {
     for (const c of getChildren(sib, membersById)) {
-      if ((sib && sib.gender) === 'Male') {
-        addRelation(((c && c.gender) === 'Male') ? 'Nephew (Brother’s son)' : 'Niece (Brother’s daughter)', c);
+      if (getGender(sib) === 'male') {
+        addRelation((getGender(c) === 'male') ? 'Nephew (Brother\'s son)' : 'Niece (Brother\'s daughter)', c);
       } else {
-        addRelation(((c && c.gender) === 'Male') ? 'Nephew (Sister’s son)' : 'Niece (Sister’s daughter)', c);
+        addRelation((getGender(c) === 'male') ? 'Nephew (Sister\'s son)' : 'Niece (Sister\'s daughter)', c);
       }
     }
   }
@@ -213,14 +218,14 @@ function relationshipLogic(person, membersById, relationRulesMap = new Map()) {
     if (membersById.has(smId)) addRelation('Mother-in-law', membersById.get(smId));
 
     for (const sib of getSiblings(spouse, membersById)) {
-      if ((sib && sib.gender) === 'Male') {
+      if (getGender(sib) === 'male') {
         addRelation(
-          (person && person.gender) === 'Female' ? 'Brother-in-law (wife’s brother)' : 'Brother-in-law (husband’s brother)',
+          getGender(person) === 'female' ? 'Brother-in-law (wife\'s brother)' : 'Brother-in-law (husband\'s brother)',
           sib
         );
       } else {
         addRelation(
-          (person && person.gender) === 'Male' ? 'Sister-in-law (wife’s sister)' : 'Sister-in-law (husband’s sister)',
+          getGender(person) === 'male' ? 'Sister-in-law (wife\'s sister)' : 'Sister-in-law (husband\'s sister)',
           sib
         );
       }

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -14,28 +14,84 @@ import {
   Camera,
   Lock
 } from 'lucide-react';
+import '../styles/heritage-background.css';
 
 const Profile = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    occupation: user?.occupation || '',
-    maritalStatus: user?.maritalStatus || 'Single',
-    profilePicture: user?.profilePicture || '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    occupation: '',
+    maritalStatus: 'Single',
+    profilePicture: '',
     address: {
-      street: user?.address?.street || '',
-      city: user?.address?.city || '',
-      state: user?.address?.state || '',
-      pincode: user?.address?.pincode || '',
-      country: user?.address?.country || 'India'
+      street: '',
+      city: '',
+      state: '',
+      pincode: '',
+      country: 'India'
     }
   });
+
+  // Fetch fresh user profile data from database on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get('/api/users/profile');
+        const userData = res.data;
+        setFormData({
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          dateOfBirth: userData?.dateOfBirth || '',
+          occupation: userData?.occupation || '',
+          maritalStatus: userData?.maritalStatus || 'Single',
+          profilePicture: userData?.profilePicture || '',
+          address: {
+            street: userData?.address?.street || '',
+            city: userData?.address?.city || '',
+            state: userData?.address?.state || '',
+            pincode: userData?.address?.pincode || '',
+            country: userData?.address?.country || 'India'
+          }
+        });
+      } catch (error) {
+        console.error('Failed to fetch profile data:', error);
+        // Fallback to user from context if API fails
+        if (user) {
+          setFormData({
+            firstName: user?.firstName || '',
+            lastName: user?.lastName || '',
+            email: user?.email || '',
+            phone: user?.phone || '',
+            dateOfBirth: user?.dateOfBirth || '',
+            occupation: user?.occupation || '',
+            maritalStatus: user?.maritalStatus || 'Single',
+            profilePicture: user?.profilePicture || '',
+            address: {
+              street: user?.address?.street || '',
+              city: user?.address?.city || '',
+              state: user?.address?.state || '',
+              pincode: user?.address?.pincode || '',
+              country: user?.address?.country || 'India'
+            }
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -86,116 +142,86 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       alert('New passwords do not match');
       return;
     }
-    // Here you would typically make an API call to update the password
-    console.log('Updating password');
-    setShowPasswordModal(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    // Show success message
+    if (passwordData.newPassword.length < 6) {
+      alert('New password must be at least 6 characters long');
+      return;
+    }
+    
+    try {
+      await api.put('/api/users/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      alert('Password updated successfully!');
+      setShowPasswordModal(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      console.error('Failed to update password:', error);
+      const message = error.response?.data?.message || 'Failed to update password';
+      alert(message);
+    }
   };
 
   const handleCancel = () => {
-    setFormData({
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      occupation: user?.occupation || '',
-      maritalStatus: user?.maritalStatus || 'Single',
-      profilePicture: user?.profilePicture || '',
-      address: {
-        street: user?.address?.street || '',
-        city: user?.address?.city || '',
-        state: user?.address?.state || '',
-        pincode: user?.address?.pincode || '',
-        country: user?.address?.country || 'India'
+    // Refetch the profile data to discard any unsaved changes
+    const fetchUserProfile = async () => {
+      try {
+        const res = await api.get('/api/users/profile');
+        const userData = res.data;
+        setFormData({
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          dateOfBirth: userData?.dateOfBirth || '',
+          occupation: userData?.occupation || '',
+          maritalStatus: userData?.maritalStatus || 'Single',
+          profilePicture: userData?.profilePicture || '',
+          address: {
+            street: userData?.address?.street || '',
+            city: userData?.address?.city || '',
+            state: userData?.address?.state || '',
+            pincode: userData?.address?.pincode || '',
+            country: userData?.address?.country || 'India'
+          }
+        });
+      } catch (error) {
+        console.error('Failed to cancel edit:', error);
       }
-    });
+    };
+    fetchUserProfile();
     setIsEditing(false);
   };
 
-  const PasswordModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-          <button 
-            onClick={() => setShowPasswordModal(false)}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Current Password
-            </label>
-            <input
-              type="password"
-              name="currentPassword"
-              value={passwordData.currentPassword}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Enter current password"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <input
-              type="password"
-              name="newPassword"
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Enter new password"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Confirm new password"
-            />
-          </div>
-        </div>
-        
-        <div className="flex space-x-3 mt-6">
-          <button
-            onClick={handlePasswordUpdate}
-            className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Update Password
-          </button>
-          <button
-            onClick={() => setShowPasswordModal(false)}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+
 
   return (
-    <div className="space-y-6">
+    <div className="heritage-bg min-h-screen relative overflow-hidden">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-content space-y-6">
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mb-4">
+              <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+            </div>
+            <p className="text-gray-600 font-medium">Loading your profile...</p>
+          </div>
+        </div>
+      )}
+      
+      {!loading && (
+        <>
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 to-orange-500/90" />
@@ -580,9 +606,88 @@ const Profile = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
 
       {/* Password Modal */}
-      {showPasswordModal && <PasswordModal />}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+              <button 
+                onClick={() => setShowPasswordModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter current password"
+                  autoComplete="current-password"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter new password"
+                  autoComplete="new-password"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handlePasswordUpdate}
+                className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Update Password
+              </button>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 };

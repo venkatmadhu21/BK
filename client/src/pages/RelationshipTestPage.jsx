@@ -14,8 +14,10 @@ const RelationshipTestPage = () => {
     const fetchMembers = async () => {
       try {
         const response = await api.get('/api/family/members');
-        setMembers(response.data);
-        console.log('Fetched members:', response.data.length);
+        // Handle both response formats: array or { success, data } object
+        const rawMembersData = Array.isArray(response.data) ? response.data : (response.data.data || []);
+        setMembers(rawMembersData);
+        console.log('Fetched members:', rawMembersData.length);
       } catch (err) {
         console.error('Error fetching members:', err);
       }

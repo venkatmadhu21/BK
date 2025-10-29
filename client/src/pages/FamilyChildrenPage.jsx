@@ -20,12 +20,12 @@ const FamilyChildrenPage = () => {
       try {
         setLoading(true);
         
-        // Fetch parent member details
-        const memberRes = await api.get(`/api/family/member/${serNo}`);
+        // Fetch parent member details from Members collection
+        const memberRes = await api.get(`/api/family/member-new/${serNo}`);
         setParentMember(memberRes.data);
         
-        // Fetch children
-        const childrenRes = await api.get(`/api/family/member/${serNo}/children`);
+        // Fetch children from Members collection
+        const childrenRes = await api.get(`/api/family/member-new/${serNo}/children`);
         setChildren(childrenRes.data);
         
         // Set a minimum loading time for better UX
@@ -48,7 +48,8 @@ const FamilyChildrenPage = () => {
     try {
       setIsExporting(true);
       const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `children-of-${parentMember.name.replace(/\s+/g, '-')}-${timestamp}.pdf`;
+      const parentName = parentMember.fullName || `${parentMember.firstName || ''} ${parentMember.lastName || ''}`.trim() || 'Member';
+      const filename = `children-of-${parentName.replace(/\s+/g, '-')}-${timestamp}.pdf`;
       await exportToPDF('children-container', filename, {
         scale: 2,
         useCORS: true,

@@ -21,6 +21,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import api from '../../utils/api';
+import { transformMembersData } from '../../utils/memberTransform';
 
 // Small component to fetch and show relations using relationRules-backed endpoint
 const DynamicRelations = ({ serNo, onNavigate }) => {
@@ -100,13 +101,19 @@ const ComprehensiveFamilyTree = () => {
           api.get('/api/family/relationships')
         ]);
         
+        // Handle both response formats: array or { success, data } object
+        const rawMembersData = Array.isArray(membersRes.data) ? membersRes.data : (membersRes.data.data || []);
+        
+        // Transform members data from new schema to flat structure
+        const transformedMembers = transformMembersData(rawMembersData);
+        
         // Data loaded successfully
-        setAllMembers(membersRes.data);
+        setAllMembers(transformedMembers);
         setAllRelationships(relationshipsRes.data);
         
         // Set selected member if serNo provided
         if (serNo) {
-          const member = membersRes.data.find(m => m.serNo === parseInt(serNo));
+          const member = transformedMembers.find(m => m.serNo === parseInt(serNo));
           setSelectedMember(member);
         }
         

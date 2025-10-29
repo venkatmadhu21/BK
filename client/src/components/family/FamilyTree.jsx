@@ -13,6 +13,7 @@ import VisualFamilyTree from './VisualFamilyTree';
 import InteractiveFamilyTree from './InteractiveFamilyTree';
 import ReactD3FamilyTree from './ReactD3FamilyTree';
 import api from '../../utils/api';
+import { transformMemberData, transformMembersData } from '../../utils/memberTransform';
 import '../../styles/heritage-background.css';
 
 // Simple recursive component for text-based tree view
@@ -183,10 +184,16 @@ const FamilyTree = () => {
       try {
         setLoading(true);
 
-        // Helper to pick a valid root serNo from the original collection
+        // ReactD3FamilyTree handles its own data fetching, so skip for that view
+        if (viewType === 'reactd3') {
+          setLoading(false);
+          return;
+        }
+
+        // Helper to pick a valid root serNo from the Members collection
         const getDefaultRootSerNo = async () => {
           try {
-            const res = await api.get('/api/family/members');
+            const res = await api.get('/api/family/members-new');
             const list = Array.isArray(res.data) ? res.data : [];
             if (list.length > 0) {
               const noParents = list.find(m => !m.fatherSerNo && !m.motherSerNo);
@@ -201,19 +208,27 @@ const FamilyTree = () => {
 
         if (viewType === 'comprehensive') {
           // Use the complete tree API for comprehensive views
-          const res = await api.get('/api/family/complete-tree-fmem');
+          const res = await api.get('/api/family/complete-tree');
+          // Transform members in the response
+          const transformedData = {
+            ...res.data,
+            membersByLevel: Object.keys(res.data.membersByLevel || {}).reduce((acc, level) => {
+              acc[level] = transformMembersData(res.data.membersByLevel[level] || []);
+              return acc;
+            }, {})
+          };
           console.log('Complete tree data loaded:', res.data.totalMembers, 'members');
-          setTreeData(res.data);
+          setTreeData(transformedData);
         } else {
           // Resolve a valid root serNo first
           let rootSerNo = serNo ? parseInt(serNo, 10) : null;
 
           if (rootSerNo) {
             try {
-              // Verify the member exists in new FamilyMember collection
-              await api.get(`/api/family/member/${rootSerNo}`);
+              // Verify the member exists in new Members collection
+              await api.get(`/api/family/member-new/${rootSerNo}`);
             } catch (e) {
-              console.warn(`Provided serNo ${rootSerNo} not found in FamilyMember collection, selecting default root.`);
+              console.warn(`Provided serNo ${rootSerNo} not found in Members collection, selecting default root.`);
               rootSerNo = await getDefaultRootSerNo();
             }
           } else {
@@ -222,7 +237,7 @@ const FamilyTree = () => {
 
           // Use the family tree API for single-root views
           console.log('Resolved root serNo:', rootSerNo);
-          const res = await api.get(`/api/family/tree/${rootSerNo}`);
+          const res = await api.get(`/api/family/tree-fmem/${rootSerNo}`);
           console.log('Individual tree data loaded for serNo:', rootSerNo);
 
           // Transform the data for our tree view
@@ -245,20 +260,23 @@ const FamilyTree = () => {
   const transformData = (member) => {
     if (!member) return null;
 
-    const memberName = member.name || 'Unknown';
+    // First, normalize the member data from new schema
+    const normalizedMember = transformMemberData(member);
+
+    const memberName = normalizedMember.fullName || 'Unknown';
     const node = {
       name: memberName,
       attributes: {
-        serNo: member.serNo || 0,
-        gender: member.gender || 'Unknown',
-        vansh: member.vansh || '',
-        level: member.level || 1,
-        sonDaughterCount: member.sonDaughterCount || 0,
-        spouse: member.spouse || '',
-        birthDate: member.birthDate || '',
-        birthYear: member.birthYear || null,
-        marriageDate: member.marriageDate || '',
-        marriageYear: member.marriageYear || null
+        serNo: normalizedMember.serNo || 0,
+        gender: normalizedMember.gender || 'Unknown',
+        vansh: normalizedMember.vansh || '',
+        level: normalizedMember.level || 1,
+        sonDaughterCount: normalizedMember.sonDaughterCount || 0,
+        spouse: normalizedMember.spouse?.fullName || '',
+        birthDate: normalizedMember.dateOfBirth || '',
+        birthYear: normalizedMember.dateOfBirth ? new Date(normalizedMember.dateOfBirth).getFullYear() : null,
+        marriageDate: normalizedMember.dateOfMarriage || '',
+        marriageYear: normalizedMember.dateOfMarriage ? new Date(normalizedMember.dateOfMarriage).getFullYear() : null
       },
       children: []
     };
@@ -274,13 +292,16 @@ const FamilyTree = () => {
     return node;
   };
 
-  if (loading) return <div className="text-center py-10">Loading family tree...</div>;
-  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
-  if (!treeData) return <div className="text-center py-10">No family tree data available.</div>;
+  // ReactD3FamilyTree handles its own loading and data, skip validation for that view
+  if (viewType !== 'reactd3') {
+    if (loading) return <div className="text-center py-10">Loading family tree...</div>;
+    if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+    if (!treeData) return <div className="text-center py-10">No family tree data available.</div>;
 
-  // Additional safety check for data structure
-  if (viewType === 'comprehensive' && !treeData.totalMembers) {
-    return <div className="text-center py-10 text-yellow-600">Complete tree data not available. Please try again.</div>;
+    // Additional safety check for data structure
+    if (viewType === 'comprehensive' && !treeData.totalMembers) {
+      return <div className="text-center py-10 text-yellow-600">Complete tree data not available. Please try again.</div>;
+    }
   }
 
   return (
@@ -364,7 +385,7 @@ const FamilyTree = () => {
                     {treeData.membersByLevel[level].map(member => (
                       <div key={member.serNo} className="heritage-card border rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${member.gender === 'Male' ? 'bg-blue-500' : 'bg-pink-500'}`}></div>
+                          <div className={`w-3 h-3 rounded-full ${member.gender?.toLowerCase() === 'male' ? 'bg-blue-500' : 'bg-pink-500'}`}></div>
                           <div className="flex-1">
                             <h5 className="font-medium text-gray-900">{member.fullName}</h5>
                             <p className="text-sm text-gray-500">#{member.serNo}</p>

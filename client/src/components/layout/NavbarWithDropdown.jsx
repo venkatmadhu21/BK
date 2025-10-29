@@ -14,10 +14,11 @@ import {
   LogOut, 
   Menu,
   X,
-  BookOpen,
+  Image as ImageIcon,
   Info,
   Globe,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 
 const NavbarWithDropdown = () => {
@@ -66,7 +67,7 @@ const NavbarWithDropdown = () => {
 const publicNavLinks = [
   { path: '/', label: t('nav.home'), icon: Home },
   { path: '/about', label: t('nav.family'), icon: Info },
-  { path: '/history', label: t('nav.history'), icon: BookOpen },
+  { path: '/media', label: t('nav.media'), icon: ImageIcon },
   { path: '/news', label: t('nav.news'), icon: Newspaper },
   { path: '/events', label: t('nav.events'), icon: Calendar },
 
@@ -75,12 +76,14 @@ const publicNavLinks = [
 ];
 
 // Private navigation links (only when authenticated)
-const privateNavLinks = [
-  { path: '/dashboard', label: 'Dashboard', icon: Home },
-];
+const privateNavLinks = isAuthenticated
+  ? user?.role === 'admin'
+    ? [{ path: '/admin', label: 'Dashboard', icon: Shield }]
+    : [{ path: '/dashboard', label: 'Dashboard', icon: Home }]
+  : [];
 
   return (
-    <nav className="top-2 xs:top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 w-[98%] xs:w-[96%] max-w-8xl sticky md:fixed" style={{zIndex: 9999}}>
+    <nav className="fixed top-2 xs:top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 w-[98%] xs:w-[96%] max-w-8xl" style={{zIndex: 9999}}>
       <div className="rounded-2xl xs:rounded-3xl sm:rounded-full shadow-2xl backdrop-blur-lg border border-orange-100/60 px-3 xs:px-4 sm:px-6 lg:px-8 py-1 hover:shadow-orange-200/50 transition-shadow duration-300 relative overflow-visible animate-navbar-gradient bg-gradient-to-r from-orange-100 via-orange-300 to-orange-200">
         {/* Subtle pattern overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-orange-100/20 via-transparent to-orange-100/20 rounded-2xl xs:rounded-3xl sm:rounded-full pointer-events-none"></div>
@@ -250,7 +253,7 @@ const privateNavLinks = [
                   <span className="lg:hidden text-xs">{t('nav.signIn')}</span>
                 </button>
                 <button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/family-form')}
                   className="px-2 lg:px-3 xl:px-4 xl:px-5 py-1 lg:py-1.5 bg-orange-500 text-white text-xs lg:text-sm font-medium rounded-full hover:bg-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <span className="hidden lg:block">{t('nav.joinFamily')}</span>

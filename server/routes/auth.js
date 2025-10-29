@@ -53,6 +53,24 @@ router.post('/register', [
     // Save user
     await user.save();
 
+    // Save login credentials to LegacyLogin collection
+    try {
+      await LegacyLogin.updateOne(
+        { email: email.toLowerCase() },
+        { $set: {
+          email: email.toLowerCase(),
+          username: user.username || `${firstName.toLowerCase()}_${user._id.toString().slice(-6)}`,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+          isActive: true
+        }},
+        { upsert: true }
+      );
+    } catch (legacyErr) {
+      console.error(`⚠️ LegacyLogin save failed: ${legacyErr.message}`);
+    }
+
     // Create JWT payload
     const payload = {
       user: {
@@ -93,42 +111,55 @@ router.post('/register', [
 // @desc    Authenticate user & get token (supports Users and legacy Login collection)
 // @access  Public
 router.post('/login', [
-  body('email').trim().isEmail().withMessage('Please include a valid email').normalizeEmail(),
-  body('password').exists().withMessage('Password is required')
+  body('password').trim().notEmpty().withMessage('Password is required')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.error('❌ Login validation error:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { email, password } = req.body;
+  const { email, username, password } = req.body;
+
+  if (!email && !username) {
+    console.error('❌ Login failed: No email or username provided. Body:', req.body);
+    return res.status(400).json({ message: 'Please provide email or username' });
+  }
 
   try {
-    // Special admin credentials check
-    if (email === 'admin123@gmail.com' && password === '1234567890') {
+    console.log(`🔐 Login attempt with email: ${email || 'N/A'}, username: ${username || 'N/A'}`);
+
+    // Special admin credentials check - support both email and username
+    const isAdminEmailLogin = email === 'admin123@gmail.com' && password === '1234567890';
+    const isAdminUsernameLogin = username === 'admin_1' && password === 'admin1234';
+
+    if (isAdminEmailLogin || isAdminUsernameLogin) {
       // Check if admin user exists, create if not
-      let adminUser = await User.findOne({ email: 'admin123@gmail.com' });
+      let adminUser = await User.findOne({ $or: [{ email: 'admin123@gmail.com' }, { username: 'admin_1' }] });
       if (!adminUser) {
         // Create admin user
         adminUser = new User({
           firstName: 'Admin',
           lastName: 'User',
           email: 'admin123@gmail.com',
-          password: '1234567890', // Will be hashed below
+          username: 'admin_1',
+          password: isAdminUsernameLogin ? 'admin1234' : '1234567890', // Will be hashed below
           gender: 'Male',
           role: 'admin',
           isAdmin: true,
           isActive: true
         });
         const salt = await bcrypt.genSalt(10);
-        adminUser.password = await bcrypt.hash(password, salt);
+        adminUser.password = await bcrypt.hash(adminUser.password, salt);
         await adminUser.save();
+        console.log(`✅ Admin user created with username: admin_1`);
       }
 
       const payload = {
         user: {
           id: adminUser.id,
           email: adminUser.email,
+          username: adminUser.username,
           isAdmin: true,
           role: 'admin',
           source: 'users'
@@ -141,6 +172,7 @@ router.post('/login', [
         { expiresIn: '24h' },
         (err, token) => {
           if (err) throw err;
+          console.log(`✅ Admin login successful`);
           return res.json({
             token,
             user: {
@@ -148,6 +180,7 @@ router.post('/login', [
               firstName: adminUser.firstName,
               lastName: adminUser.lastName,
               email: adminUser.email,
+              username: adminUser.username,
               isAdmin: true,
               role: 'admin',
               profilePicture: adminUser.profilePicture
@@ -157,15 +190,24 @@ router.post('/login', [
       );
     }
 
-    // 1) Try modern Users collection (bcrypt)
-    let user = await User.findOne({ email });
+    // 1) Try modern Users collection (bcrypt) - search by email or username
+    let user;
+    if (email) {
+      user = await User.findOne({ email: email.toLowerCase() });
+    } else if (username) {
+      user = await User.findOne({ username: username.toLowerCase() });
+    }
+
     if (user) {
+      console.log(`📝 User found in Users collection: ${user.email}`);
       if (!user.isActive) {
+        console.log(`❌ User account is deactivated: ${user.email}`);
         return res.status(400).json({ message: 'Account is deactivated. Contact administrator.' });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
+        console.log(`❌ Invalid password for user: ${user.email}`);
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
@@ -173,6 +215,7 @@ router.post('/login', [
         user: {
           id: user.id,
           email: user.email,
+          username: user.username,
           isAdmin: user.isAdmin,
           role: user.role,
           source: 'users'
@@ -185,6 +228,7 @@ router.post('/login', [
         { expiresIn: '24h' },
         (err, token) => {
           if (err) throw err;
+          console.log(`✅ User login successful: ${user.email}`);
           return res.json({
             token,
             user: {
@@ -192,6 +236,7 @@ router.post('/login', [
               firstName: user.firstName,
               lastName: user.lastName,
               email: user.email,
+              username: user.username,
               isAdmin: user.isAdmin,
               role: user.role,
               profilePicture: user.profilePicture
@@ -202,20 +247,36 @@ router.post('/login', [
     }
 
     // 2) Fallback to legacy 'login' collection (plaintext)
-    // Try both 'login' and 'Login' collections just in case
-    let legacy = await LegacyLogin.findOne({ email: email.toLowerCase() });
-    if (!legacy) {
-      legacy = await LegacyLoginCap.findOne({ email: email.toLowerCase() });
+    // Legacy collection supports both email and username login
+    let legacy;
+    
+    if (email) {
+      legacy = await LegacyLogin.findOne({ email: email.toLowerCase() });
+      if (!legacy) {
+        legacy = await LegacyLoginCap.findOne({ email: email.toLowerCase() });
+      }
+    } else if (username) {
+      legacy = await LegacyLogin.findOne({ username: username.toLowerCase() });
+      if (!legacy) {
+        legacy = await LegacyLoginCap.findOne({ username: username.toLowerCase() });
+      }
     }
+    
     if (!legacy) {
-      return res.status(400).json({ message: 'Invalid credentials (legacy not found)' });
+      console.log(`❌ No login credentials found for email: ${email}, username: ${username}`);
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
+
+    console.log(`📝 Found legacy login record`);
+    
     if (legacy.isActive === false) {
+      console.log(`❌ Legacy account is deactivated`);
       return res.status(400).json({ message: 'Account is deactivated. Contact administrator.' });
     }
 
     // Legacy passwords are plaintext per your note
     if ((legacy.password || '').trim() !== (password || '').trim()) {
+      console.log(`❌ Invalid password for legacy user`);
       return res.status(400).json({ message: 'Invalid credentials (legacy mismatch)' });
     }
 
@@ -237,6 +298,7 @@ router.post('/login', [
       { expiresIn: '24h' },
       (err, token) => {
         if (err) throw err;
+        console.log(`✅ Legacy user login successful: ${legacy.email}`);
         return res.json({
           token,
           user: {
@@ -252,7 +314,8 @@ router.post('/login', [
       }
     );
   } catch (error) {
-    console.error(error.message);
+    console.error('❌ Login error:', error.message);
+    console.error('Stack:', error.stack);
     return res.status(500).send('Server error');
   }
 });
@@ -279,7 +342,7 @@ router.get('/user', auth, async (req, res) => {
     return res.json(user);
   } catch (error) {
     console.error(error.message);
-    return res.status(500).send('Server error');
+    res.status(500).send('Server error');
   }
 });
 

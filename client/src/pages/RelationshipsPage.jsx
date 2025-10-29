@@ -32,7 +32,9 @@ const RelationshipsPage = () => {
         ]);
         
         setRelationships(relationshipsRes.data);
-        setMembers(membersRes.data);
+        // Handle both response formats: array or { success, data } object
+        const rawMembersData = Array.isArray(membersRes.data) ? membersRes.data : (membersRes.data.data || []);
+        setMembers(rawMembersData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching relationships:', error);

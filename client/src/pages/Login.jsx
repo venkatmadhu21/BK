@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
+import jointImage from '../assets/images/joint.png';
+import '../styles/heritage-background.css';
 
 const Login = () => {
   const { login, isAuthenticated, error, clearErrors, user } = useAuth();
@@ -10,7 +12,7 @@ const Login = () => {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +37,7 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const { email, password } = formData;
+  const { username, password } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,7 +47,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    const result = await login({ email, password }, rememberMe);
+    const result = await login({ username, password }, rememberMe);
     
     if (result.success) {
       navigate('/dashboard');
@@ -55,8 +57,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 xs:py-12 px-3 xs:px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 xs:space-y-8">
+    <div className="heritage-bg min-h-screen flex items-center justify-center py-8 xs:py-12 px-3 xs:px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="flex w-full max-w-6xl gap-16 lg:gap-24 items-center relative z-10">
+        <div className="heritage-content flex-1 max-w-md space-y-6 xs:space-y-8">
         <div>
           <h2 className="mt-4 xs:mt-6 text-center text-2xl xs:text-3xl font-bold text-gray-900">
             {t('auth.welcomeBack')}
@@ -68,25 +76,25 @@ const Login = () => {
         
         <form className="mt-6 xs:mt-8 space-y-4 xs:space-y-6" onSubmit={onSubmit}>
           <div className="space-y-3 xs:space-y-4">
-            {/* Email */}
+            {/* Username */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                {t('auth.email')}
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 xs:h-5 xs:w-5 text-gray-400" />
+                  <User className="h-4 w-4 xs:h-5 xs:w-5 text-gray-400" />
                 </div>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
                   required
-                  value={email}
+                  value={username}
                   onChange={onChange}
                   className="pl-9 xs:pl-10 block w-full px-3 py-2.5 xs:py-2 text-sm xs:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter your email"
+                  placeholder="Enter your username"
                 />
               </div>
             </div>
@@ -178,7 +186,7 @@ const Login = () => {
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
               <Link 
-                to="/register" 
+                to="/family-form" 
                 className="text-primary-600 hover:text-primary-500 font-medium"
               >
                 Create one here
@@ -186,6 +194,14 @@ const Login = () => {
             </p>
           </div>
         </form>
+        </div>
+        <div className="hidden lg:flex flex-1 justify-end items-center">
+          <img 
+            src={jointImage} 
+            alt="Bal Krishna Nivas" 
+            className="max-w-2xl w-full h-auto object-contain"
+          />
+        </div>
       </div>
     </div>
   );

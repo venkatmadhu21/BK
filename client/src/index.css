@@ -27,3 +27,13 @@ code {
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

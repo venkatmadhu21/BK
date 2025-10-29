@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const LegacyLogin = require('../models/LegacyLogin');
+const LegacyLoginCap = require('../models/LegacyLoginCap');
 const auth = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
@@ -101,7 +103,7 @@ router.put('/profile', [
 });
 
 // @route   PUT api/users/change-password
-// @desc    Change user password
+// @desc    Change user password (syncs to both Users and LegacyLogin)
 // @access  Private
 router.put('/change-password', [
   auth,
@@ -124,13 +126,77 @@ router.put('/change-password', [
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
-    // Hash new password
+    // Hash new password for Users collection
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
 
     await user.save();
 
-    res.json({ message: 'Password updated successfully' });
+    // Also update LegacyLogin collection if user has serNo or serno
+    if (user.familyId || req.user.serNo) {
+      try {
+        let serNo = req.user.serNo;
+        
+        if (!serNo) {
+          // Try to find serNo from the user document
+          const updatedUser = await User.findById(req.user.id);
+          // Check if there's an embedded serNo or we need to look it up differently
+          serNo = updatedUser.serNo || updatedUser.sNo;
+        }
+
+        if (serNo) {
+          // Update LegacyLogin collection with new plaintext password
+          // Note: This stores the plaintext password for backward compatibility
+          const legacyUpdateResult = await LegacyLogin.updateOne(
+            { serNo: serNo },
+            { 
+              $set: { 
+                password: newPassword,
+                updatedAt: new Date()
+              }
+            }
+          );
+
+          // Also try LegacyLoginCap collection
+          if (legacyUpdateResult.matchedCount === 0) {
+            await LegacyLoginCap.updateOne(
+              { serNo: serNo },
+              { 
+                $set: { 
+                  password: newPassword,
+                  updatedAt: new Date()
+                }
+              }
+            );
+          }
+
+          console.log(`✅ Password updated in Users collection and synced to LegacyLogin (serNo: ${serNo})`);
+          res.json({ 
+            message: 'Password updated successfully and synced to all systems',
+            synced: true 
+          });
+        } else {
+          console.log(`⚠️  Password updated in Users collection but no serNo found for LegacyLogin sync`);
+          res.json({ 
+            message: 'Password updated successfully',
+            synced: false,
+            warning: 'Could not sync to legacy system - no serial number found'
+          });
+        }
+      } catch (legacyError) {
+        console.error('⚠️  Error syncing password to LegacyLogin:', legacyError.message);
+        res.json({ 
+          message: 'Password updated successfully',
+          synced: false,
+          warning: 'Password updated in main system but sync to legacy system failed. Please notify admin.'
+        });
+      }
+    } else {
+      res.json({ 
+        message: 'Password updated successfully',
+        synced: false 
+      });
+    }
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Server error');

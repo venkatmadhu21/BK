@@ -12,7 +12,7 @@ const QuickLoader = ({ children }) => {
     const messages = {
       '/': 'Loading Home...',
       '/about': 'Loading About...',
-      '/history': 'Loading History...',
+      '/media': 'Loading Media...',
       '/news': 'Loading News...',
       '/events': 'Loading Events...',
       '/login': 'Loading Login...',

@@ -16,9 +16,9 @@ import AccessibilityNotification from './components/accessibility/AccessibilityN
 import SiteFooter from './components/layout/SiteFooter';
 import Home from './pages/Home';
 import About from './pages/About';
-import History from './pages/History';
+import Media from './pages/Media';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import FamilyFormPage from './pages/FamilyFormPage';
 import Dashboard from './pages/Dashboard';
 import LoginConfirmed from './pages/LoginConfirmed';
 import FamilyTree from './pages/FamilyTree';
@@ -80,9 +80,11 @@ function App() {
                 <About />
               </main>
             } />
-            <Route path="/history" element={
+            <Route path="/media" element={
               <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
-                <History />
+                <PrivateRoute>
+                  <Media />
+                </PrivateRoute>
               </main>
             } />
             <Route path="/news" element={
@@ -109,9 +111,9 @@ function App() {
                 <LoginConfirmed />
               </main>
             } />
-            <Route path="/register" element={
+            <Route path="/family-form" element={
               <main id="main-content" className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-20 xs:pt-24 sm:pt-28 pb-6 xs:pb-8 relative z-10">
-                <Register />
+                <FamilyFormPage />
               </main>
             } />
             <Route path="/dashboard" element={

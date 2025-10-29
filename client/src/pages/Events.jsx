@@ -20,6 +20,8 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import api from '../utils/api';
+import Scroller from '../components/Scroller';
+import '../styles/heritage-background.css';
 
 const CreateEventModal = ({
   formData,
@@ -406,6 +408,8 @@ const Events = () => {
   const [eventsData, setEventsData] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [latestNews, setLatestNews] = React.useState([]);
+  const [loadingNews, setLoadingNews] = React.useState(false);
   const eventsRef = React.useRef(null);
 
   const eventTypes = [
@@ -468,6 +472,31 @@ const Events = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch latest news for scroller
+  useEffect(() => {
+    const fetchLatestNews = async () => {
+      setLoadingNews(true);
+      try {
+        const response = await api.get('/api/news', {
+          params: {
+            limit: 10,
+            sortBy: 'publishedDate',
+            sortOrder: 'desc'
+          }
+        });
+        
+        setLatestNews((response.data.news || []).slice(0, 10));
+      } catch (err) {
+        console.error('Failed to fetch latest news:', err);
+        setLatestNews([]);
+      } finally {
+        setLoadingNews(false);
+      }
+    };
+
+    fetchLatestNews();
+  }, []);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       // Debounce to avoid spamming the API while typing
@@ -482,7 +511,18 @@ const Events = () => {
                          event.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || event.eventType === selectedType;
     const matchesStatus = selectedStatus === 'all' || event.status === selectedStatus;
-    return matchesSearch && matchesType && matchesStatus;
+    
+    // For "Upcoming" status, also filter by date (only future events)
+    let matchesDate = true;
+    if (selectedStatus === 'Upcoming') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const eventDate = new Date(event.startDate);
+      eventDate.setHours(0, 0, 0, 0);
+      matchesDate = eventDate > today;
+    }
+    
+    return matchesSearch && matchesType && matchesStatus && matchesDate;
   });
 
   const formatDate = (dateString) => {
@@ -1027,31 +1067,47 @@ const Events = () => {
   );
 
   return (
-    <>
-      {/* Custom CSS for enhanced animations */}
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
+    <div className="heritage-bg min-h-screen relative overflow-hidden">
+      <div className="heritage-gradient-overlay"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-decoration"></div>
+      <div className="heritage-content">
+        {/* Custom CSS for enhanced animations */}
+        <style>{`
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
           }
-        }
+          
+          .float-animation {
+            animation: float 6s ease-in-out infinite;
+          }
+        `}</style>
         
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(2deg); }
-        }
+        {/* Show combined scroller for news and events - Sticky at top */}
+        {(latestNews.length > 0 || eventsData.length > 0) && (
+          <div className="sticky top-16 z-40 w-full">
+            <Scroller 
+              newsItems={latestNews.slice(0, 5)}
+              eventItems={eventsData.slice(0, 5)}
+            />
+          </div>
+        )}
         
-        .float-animation {
-          animation: float 6s ease-in-out infinite;
-        }
-      `}</style>
-      
-      <div className="space-y-4 xs:space-y-6" ref={eventsRef}>
+        <div className="space-y-4 xs:space-y-6 pt-28" ref={eventsRef}>
       {/* Enhanced Header */}
       <div className={`bg-white rounded-lg shadow-lg border border-gray-200 p-4 xs:p-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 xs:mb-6 space-y-4 sm:space-y-0">
@@ -1164,8 +1220,9 @@ const Events = () => {
           eventTypes={eventTypes}
         />
       )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -118,9 +118,9 @@ function buildCoupleHierarchy(source, maybeRootSerNo) {
 }
   
 // --- UI constants ---
-const NODE_CARD_WIDTH = 800; // total width for couple node
-const NODE_CARD_HEIGHT = 250;
-const COUPLE_GAP = 20;
+const NODE_CARD_WIDTH = 480; // total width for couple node
+const NODE_CARD_HEIGHT = 150;
+const COUPLE_GAP = 12;
 
 function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, isExpanded, onToggleExpand }) {
 	  const isMale = gender === 'Male';
@@ -134,12 +134,12 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
         height: NODE_CARD_HEIGHT,
         background: `linear-gradient(135deg, ${bgColor} 0%, #ffffff 100%)`,
         border: `2px ${hasChildren && !isExpanded ? 'dashed' : 'solid'} ${cardColor}`,
-        borderRadius: 16,
-        boxShadow: '0 8px 25px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)',
+        borderRadius: 10,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         display: 'flex',
         alignItems: 'center',
-        padding: 12,
-        gap: 12,
+        padding: 8,
+        gap: 8,
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',
         position: 'relative',
@@ -166,22 +166,22 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           onClick={onToggleExpand}
           style={{
             position: 'absolute',
-            top: '8px',
-            right: '8px',
-            width: '28px',
-            height: '28px',
+            top: '6px',
+            right: '6px',
+            width: '18px',
+            height: '18px',
             borderRadius: '50%',
-            backgroundColor: isExpanded ? '#dc2626' : '#16a34a', // Red for collapse, green for expand
+            backgroundColor: isExpanded ? '#dc2626' : '#16a34a',
             color: 'white',
-            border: '2px solid white',
+            border: '1px solid white',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '16px',
+            fontSize: '12px',
             fontWeight: 'bold',
             zIndex: 10,
-            boxShadow: '0 3px 6px rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             transition: 'all 0.2s ease',
           }}
           onMouseEnter={(e) => {
@@ -206,29 +206,29 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           position: 'absolute',
           top: 0,
           right: 0,
-          width: '60px',
-          height: '60px',
+          width: '40px',
+          height: '40px',
           background: `linear-gradient(135deg, ${cardColor}20 0%, transparent 70%)`,
-          borderRadius: '0 16px 0 50px',
+          borderRadius: '0 10px 0 50px',
           pointerEvents: 'none',
         }}
       />
 
       <div
         style={{
-          width: 100,
-          height: 100,
+          width: 60,
+          height: 60,
           borderRadius: '50%',
           background: photo ? `url(${photo})` : `linear-gradient(135deg, ${cardColor} 0%, ${cardColor}dd 100%)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           flex: '0 0 auto',
-          border: `3px solid #ffffff`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          border: `2px solid #ffffff`,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '32px',
+          fontSize: '20px',
           color: '#ffffff',
           fontWeight: 'bold',
           transition: 'all 0.3s ease',
@@ -241,36 +241,36 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
         <div
           style={{
             fontWeight: 700,
-            fontSize: 20,
+            fontSize: 9,
             color: '#1f2937',
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis',
             overflow: 'hidden',
-            maxWidth: NODE_CARD_WIDTH / 2 - 100 - 36,
-            marginBottom: '4px',
+            maxWidth: NODE_CARD_WIDTH / 2 - 60 - 24,
+            marginBottom: '2px',
           }}
         >
           {name}
         </div>
 
         <div style={{
-          fontSize: 14,
+          fontSize: 7.5,
           color: '#6b7280',
           fontWeight: 500,
-          marginBottom: '2px'
+          marginBottom: '1px'
         }}>
           #{serNo}
-          {vansh && <span style={{ marginLeft: '6px', color: cardColor }}>•</span>}
+          {vansh && <span style={{ marginLeft: '4px', color: cardColor }}>•</span>}
           {vansh && <span style={{ marginLeft: '2px', color: cardColor, fontWeight: 600 }}>{vansh}</span>}
         </div>
 
         <div style={{
-          fontSize: 14,
+          fontSize: 6.5,
           color: '#374151',
           fontWeight: 600,
           backgroundColor: `${cardColor}25`,
-          padding: '2px 8px',
-          borderRadius: '12px',
+          padding: '1px 6px',
+          borderRadius: '8px',
           display: 'inline-block',
           width: 'fit-content',
           border: `1px solid ${cardColor}40`
@@ -345,9 +345,9 @@ function CoupleNode({ nodeDatum, onNodeClick, onToggleExpand, expandedNodes }) {
             serNo={nodeDatum.spouse?.attributes?.serNo}
             vansh={nodeDatum.spouse?.attributes?.vansh}
             onClick={() => onNodeClick(nodeDatum.spouse?.attributes?.serNo)}
-            hasChildren={false} // Spouse doesn't have children in this structure
+            hasChildren={false}
             isExpanded={false}
-            onToggleExpand={() => {}} // No-op for spouse
+            onToggleExpand={() => {}}
           />
       ) : (
         <div style={{ width: NODE_CARD_WIDTH / 2 - COUPLE_GAP / 2, height: NODE_CARD_HEIGHT }} />
@@ -360,9 +360,9 @@ const containerStyles = {
   width: '100%',
   height: '80vh',
   background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ffffff 100%)',
-  border: '2px solid #e2e8f0',
-  borderRadius: 24,
-  boxShadow: '0 12px 50px rgba(0,0,0,0.1), 0 6px 25px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
+  border: '1px solid #e2e8f0',
+  borderRadius: 16,
+  boxShadow: '0 6px 25px rgba(0,0,0,0.08)',
   position: 'relative',
   backdropFilter: 'blur(10px)',
   overflow: 'hidden',
@@ -374,7 +374,7 @@ export default function ReactD3FamilyTree() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  const [expandedNodes, setExpandedNodes] = useState(new Set()); // Track expanded nodes by serNo
+  const [expandedNodes, setExpandedNodes] = useState(new Set());
   const containerRef = useRef(null);
 
 
@@ -384,9 +384,8 @@ export default function ReactD3FamilyTree() {
     }
   };
 
-  // Handle expand/collapse toggle
   const handleToggleExpand = (serNo, e) => {
-    e.stopPropagation(); // Prevent triggering node click
+    e.stopPropagation();
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(serNo)) {
@@ -398,7 +397,6 @@ export default function ReactD3FamilyTree() {
     });
   };
 
-  // Function to filter tree data based on expanded nodes
   const filterTreeData = useCallback((node) => {
     if (!node) return null;
 
@@ -415,11 +413,10 @@ export default function ReactD3FamilyTree() {
     async function load() {
       try {
         const rootSerNo = Number.parseInt(serNo || '1', 10) || 1;
-        const res = await api.get(`/api/family/tree-couples/${rootSerNo}?depth=8`);
+        const res = await api.get(`/api/family/tree-fmem/${rootSerNo}`);
         const tree = buildCoupleHierarchy(res.data);
         setData(tree);
 
-        // Initialize all nodes with children as expanded
         const initialExpanded = new Set();
         const collectExpandableNodes = (node) => {
           const hasChildren = (node.children && node.children.length > 0) ||
@@ -442,7 +439,6 @@ export default function ReactD3FamilyTree() {
     load();
   }, [serNo]);
 
-  // Center root on mount
   useEffect(() => {
     if (!containerRef.current) return;
     const { width } = containerRef.current.getBoundingClientRect();
@@ -470,14 +466,11 @@ export default function ReactD3FamilyTree() {
     );
   }, [handleNodeClick, handleToggleExpand, expandedNodes]);
 
-  // Enhanced curved connectors with gradient and animation effects
   const pathFunc = useCallback((linkData, orientation) => {
     const { source, target } = linkData;
-    // Create a more elegant S-curve for better visual flow
     const midY = (source.y + target.y) / 2;
     const curveOffset = Math.abs(target.x - source.x) * 0.3;
 
-    // Control points for smooth S-curve
     const c1x = source.x + curveOffset;
     const c1y = source.y + (midY - source.y) * 0.3;
     const c2x = target.x - curveOffset;
@@ -493,7 +486,6 @@ export default function ReactD3FamilyTree() {
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
-      {/* Family Tree Container */}
       <div ref={containerRef} style={containerStyles}>
         <Tree
           data={treeData}
@@ -501,8 +493,8 @@ export default function ReactD3FamilyTree() {
           zoom={0.9}
           scaleExtent={{ min: 0.4, max: 3.2 }}
           zoomable
-          separation={{ siblings: 2.4, nonSiblings: 5.6 }}
-          nodeSize={{ x: NODE_CARD_WIDTH + 120, y: NODE_CARD_HEIGHT + 140 }}
+          separation={{ siblings: 1.8, nonSiblings: 3.6 }}
+          nodeSize={{ x: NODE_CARD_WIDTH + 80, y: NODE_CARD_HEIGHT + 80 }}
           renderCustomNodeElement={renderFoNode}
           allowForeignObjects
           orientation="vertical"
@@ -510,9 +502,9 @@ export default function ReactD3FamilyTree() {
           styles={{
             links: {
               stroke: 'url(#linkGradient)',
-              strokeWidth: 4,
+              strokeWidth: 2,
               fill: 'none',
-              filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.15)) drop-shadow(0 1px 3px rgba(139, 92, 246, 0.3))',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1)) drop-shadow(0 1px 2px rgba(139, 92, 246, 0.2))',
             },
             nodes: {
               node: { circle: { stroke: '#9ca3af', strokeWidth: 0 } },
@@ -529,7 +521,6 @@ export default function ReactD3FamilyTree() {
               <stop offset="100%" stopColor="#ec4899" stopOpacity="0.9" />
             </linearGradient>
 
-            {/* Animated pulse effect for links */}
             <style>
               {`
                 @keyframes linkPulse {
@@ -549,7 +540,6 @@ export default function ReactD3FamilyTree() {
         </Tree>
       </div>
 
-      {/* PDF Export button positioned below the tree */}
       {data && (
         <div style={{
           display: 'flex',
