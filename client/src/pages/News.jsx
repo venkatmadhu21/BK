@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Newspaper, 
   Search, 
@@ -271,6 +272,7 @@ const CreateNewsModal = ({
 };
 
 const News = () => {
+  const location = useLocation();
   const { t } = useLanguage();
   const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -506,8 +508,23 @@ const News = () => {
   };
 
   useEffect(() => {
-    fetchNews({ category: selectedCategory });
-  }, []);
+    (async () => {
+      await fetchNews({ category: selectedCategory });
+      const newsId = location.state?.newsId;
+      if (!newsId) {
+        return;
+      }
+      try {
+        const response = await api.get(`/api/news/${newsId}`);
+        if (response.data) {
+          setSelectedNews(response.data);
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || 'Unable to load selected news';
+        addToast(message, 'error');
+      }
+    })();
+  }, [addToast, location.state?.newsId]);
 
   // Fetch upcoming events for scroller
   useEffect(() => {
@@ -744,22 +761,31 @@ const News = () => {
           </div>
         </div>
         
-        <div className="p-6">
+        <div className="p-6 space-y-6">
+          {Array.isArray(news.images) && news.images.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Images</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {news.images.map((image, index) => (
+                  <div key={index} className="relative rounded-lg overflow-hidden border border-gray-200">
+                    <img
+                      src={image.url || image.thumbnail}
+                      alt={image.caption || `News image ${index + 1}`}
+                      className="w-full h-64 object-cover"
+                    />
+                    {image.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-sm px-3 py-2">
+                        {image.caption}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="prose max-w-none">
             <p className="text-gray-700 leading-relaxed">{news.content}</p>
-          </div>
-          
-          <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-6">
-            <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
-                <Heart size={16} />
-                <span>{news.likes} Likes</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
-                <MessageCircle size={16} />
-                <span>{news.comments} Comments</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>

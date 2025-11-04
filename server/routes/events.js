@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const auth = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
@@ -105,6 +106,11 @@ router.post('/', [
       priority
     } = req.body;
 
+    const organizerId = req.user?.id;
+    if (!organizerId || !mongoose.Types.ObjectId.isValid(organizerId)) {
+      return res.status(400).json({ message: 'Only registered members can create events' });
+    }
+
     const event = new Event({
       title,
       description,
@@ -114,7 +120,7 @@ router.post('/', [
       startTime,
       endTime,
       venue,
-      organizer: req.user.id,
+      organizer: organizerId,
       coOrganizers,
       images,
       isPublic: isPublic !== false,

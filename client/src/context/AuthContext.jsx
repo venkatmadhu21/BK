@@ -16,7 +16,17 @@ const initialState = {
 
 const authReducer = (state, action) => {
   switch (action.type) {
-    case 'USER_LOADED':
+    case 'USER_LOADED': {
+      try {
+        if (action.payload) {
+          const serialized = JSON.stringify(action.payload);
+          if (localStorage.getItem('token')) {
+            localStorage.setItem('auth_user', serialized);
+          } else if (sessionStorage.getItem('token')) {
+            sessionStorage.setItem('auth_user', serialized);
+          }
+        }
+      } catch {}
       return {
         ...state,
         isAuthenticated: true,
@@ -24,6 +34,7 @@ const authReducer = (state, action) => {
         user: action.payload,
         error: null
       };
+    }
     case 'REGISTER_SUCCESS':
     case 'LOGIN_SUCCESS': {
       // Clear existing tokens, then store based on remember flag (defaults to session)

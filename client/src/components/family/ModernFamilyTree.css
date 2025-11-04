@@ -33,13 +33,18 @@
 }
 
 .modern-tree-node.male {
-  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
-  border: 2px solid #91d5ff;
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  border: 2px solid #60a5fa;
 }
 
 .modern-tree-node.female {
-  background: linear-gradient(135deg, #fff0f6 0%, #ffd6e7 100%);
-  border: 2px solid #ffadd2;
+  background: linear-gradient(135deg, #ffe4ef 0%, #f9a8d4 100%);
+  border: 2px solid #f472b6;
+}
+
+.modern-tree-node.unknown {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 2px solid #d1d5db;
 }
 
 .node-content {

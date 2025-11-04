@@ -545,9 +545,8 @@ const Home = () => {
                 {/* Enhanced Image Label */}
                 <div className="mt-3 xs:mt-4 text-center group-hover:scale-105 transition-all duration-300">
                    <div className="bg-gradient-to-r from-orange-100 to-orange-50 rounded-lg p-2 xs:p-3 border-2 border-orange-300 shadow-md group-hover:shadow-lg group-hover:border-orange-400 group-hover:from-orange-200 group-hover:to-orange-100 transition-all duration-300">
-                    <p className="text-sm xs:text-base font-bold text-orange-800 group-hover:text-orange-900 transition-colors duration-300">योगेश्वरी देवी, अंबाजोगाई</p>
-                    <p className="text-xs text-orange-600 mt-1 group-hover:text-orange-700 transition-colors duration-300">👆 Click to learn more</p>
-                  </div>
+                    <p className="text-sm xs:text-base font-bold text-orange-800 group-hover:text-orange-900 transition-colors duration-300">Yogeshwari Devi,Ambajogai</p>
+                   </div>
                 </div>
               </div>
             </div>

@@ -14,12 +14,13 @@ import {
   Filter,
   BarChart3,
   Maximize2,
-  Minimize2
+  Minimize2,
+  X
 } from 'lucide-react';
 import api from '../../utils/api';
 import { transformMembersData } from '../../utils/memberTransform';
 
-const VisualFamilyTree = () => {
+const VisualFamilyTree = ({ onClose }) => {
   const [allMembers, setAllMembers] = useState([]);
   const [allRelationships, setAllRelationships] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -283,7 +284,7 @@ const VisualFamilyTree = () => {
               Family tree with relationship connections - {allMembers.length} members, {allRelationships.length} relationships
             </p>
           </div>
-          <div className="flex space-x-3 mt-4 lg:mt-0">
+          <div className="flex space-x-3 mt-4 lg:mt-0 relative z-50">
             <Link 
               to="/relationships"
               className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors"
@@ -298,6 +299,16 @@ const VisualFamilyTree = () => {
               <Home className="mr-2" size={16} />
               Family List
             </Link>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors"
+                title="Close this view"
+              >
+                <X className="mr-2" size={16} />
+                Close
+              </button>
+            )}
           </div>
         </div>
 
@@ -372,7 +383,7 @@ const VisualFamilyTree = () => {
 
       {/* Selected Member Details Modal */}
       {selectedMember && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">

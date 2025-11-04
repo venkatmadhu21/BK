@@ -23,13 +23,19 @@ const CardTreeNode = ({ node, level }) => {
   };
   
   const hasChildren = node.children && node.children.length > 0;
-  const isMale = node.attributes.gender === 'Male';
+  const normalizedGender = (node.attributes.gender || '').toString().trim().toLowerCase();
+  const genderClass = ['male', 'm'].includes(normalizedGender)
+    ? 'male'
+    : ['female', 'f'].includes(normalizedGender)
+      ? 'female'
+      : 'unknown';
+  const isMale = genderClass === 'male';
   
   return (
     <div className="card-tree-node-container" style={{ paddingLeft: `${level * 40}px` }}>
-      <div className={`card-tree-node ${isMale ? 'male' : 'female'}`}>
+      <div className={`card-tree-node ${genderClass}`}>
         <div className="card-node-avatar">
-          <User size={24} color={isMale ? '#1890ff' : '#eb2f96'} />
+          <User size={24} color={isMale ? '#60a5fa' : genderClass === 'female' ? '#f472b6' : '#6b7280'} />
         </div>
         
         <div className="card-node-content">

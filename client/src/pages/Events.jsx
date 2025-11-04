@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Calendar, 
   Search, 
@@ -391,6 +392,7 @@ const CreateEventModal = ({
 };
 
 const Events = () => {
+  const location = useLocation();
   const priorityOptions = ['Low', 'Medium', 'High'];
   const visibilityOptions = [
     { value: true, label: 'Public' },
@@ -471,6 +473,24 @@ const Events = () => {
     fetchEvents({ eventType: selectedType, status: selectedStatus, searchTerm });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      const eventId = location.state?.eventId;
+      if (!eventId) {
+        return;
+      }
+      try {
+        const response = await api.get(`/api/events/${eventId}`);
+        if (response.data) {
+          setSelectedEvent(response.data);
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || 'Unable to load event details';
+        addToast(message, 'error');
+      }
+    })();
+  }, [addToast, location.state?.eventId]);
 
   // Fetch latest news for scroller
   useEffect(() => {
@@ -555,10 +575,6 @@ const Events = () => {
       default:
         return <Clock size={16} className="text-gray-500" />;
     }
-  };
-
-  const getTotalAttendees = (attendees) => {
-    return attendees.reduce((total, group) => total + group.count, 0);
   };
 
   const handleSelectEvent = (eventItem) => {
@@ -849,10 +865,12 @@ const Events = () => {
               {event.priority} Priority
             </span>
           </div>
-          <div className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-            {getStatusIcon(event.status)}
-            <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">{event.status}</span>
-          </div>
+          {event.status && event.status !== 'Upcoming' && (
+            <div className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
+              {getStatusIcon(event.status)}
+              <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">{event.status}</span>
+            </div>
+          )}
         </div>
 
         <h2 className="text-xl font-semibold text-gray-900 mb-3 hover:text-orange-600 cursor-pointer group-hover:scale-105 transition-all duration-300">
@@ -879,11 +897,6 @@ const Events = () => {
             <MapPin size={16} className="group-hover:text-orange-500 transition-colors duration-300" />
             <span>{event.venue?.name || 'TBA'}</span>
           </div>
-          <div className="flex items-center space-x-2 group-hover:text-gray-700 transition-colors duration-300">
-            <Users size={16} className="group-hover:text-orange-500 transition-colors duration-300" />
-            <span>{getTotalAttendees(event.attendees)} attending</span>
-
-          </div>
         </div>
 
         <div className="flex items-center justify-between">
@@ -902,9 +915,20 @@ const Events = () => {
     </div>
   );
 
-  const EventModal = ({ event, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 xs:p-4 z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+  const EventModal = ({ event, onClose }) => {
+    useEffect(() => {
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }, [onClose]);
+
+    return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 xs:p-4 z-50" onClick={onClose}>
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 xs:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h1 className="text-xl xs:text-2xl font-bold text-gray-900 pr-4">{event.title}</h1>
@@ -951,7 +975,7 @@ const Events = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xs:gap-8">
+          <div className="space-y-6 xs:space-y-8">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Details</h3>
               <div className="space-y-3 text-sm">
@@ -996,47 +1020,6 @@ const Events = () => {
                 </div>
               </div>
             </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Attendance</h3>
-              <div className="space-y-3">
-                {event.attendees?.map((attendee) => (
-                  <div key={attendee._id || attendee.user?._id || attendee.user || attendee.status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className={`font-medium ${
-                      attendee.status === 'Going' ? 'text-green-600' :
-                      attendee.status === 'Maybe' ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {attendee.status}
-                    </span>
-                    <span className="text-gray-900 font-semibold">
-                      {attendee.count || 1}
-                    </span>
-                  </div>
-                ))}
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="flex items-center justify-between font-semibold">
-                    <span>Total Attending</span>
-                    <span>{getTotalAttendees(event.attendees)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <h4 className="font-semibold text-gray-900 mb-3">RSVP</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  <button className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
-                    Going
-                  </button>
-                  <button className="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">
-                    Maybe
-                  </button>
-                  <button className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
-                    Can't Go
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="mt-8">
@@ -1064,7 +1047,8 @@ const Events = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="heritage-bg min-h-screen relative overflow-hidden">
@@ -1099,7 +1083,7 @@ const Events = () => {
         
         {/* Show combined scroller for news and events - Sticky at top */}
         {(latestNews.length > 0 || eventsData.length > 0) && (
-          <div className="sticky top-16 z-40 w-full">
+          <div className="sticky top-0 z-40 w-full">
             <Scroller 
               newsItems={latestNews.slice(0, 5)}
               eventItems={eventsData.slice(0, 5)}

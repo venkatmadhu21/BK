@@ -261,7 +261,7 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
               to={`/family/member/${member.spouseSerNo}`}
               className="text-pink-600 hover:text-pink-800 font-medium text-sm hover:underline"
             >
-              View Spouse (#{member.spouseSerNo})
+              {member.spouse?.fullName ? `${member.spouse.fullName} (#${member.spouseSerNo})` : `View Spouse (#${member.spouseSerNo})`}
             </Link>
           </div>
         )}
@@ -336,17 +336,6 @@ const EnhancedFamilyMemberCard = ({ member, showAllFields = false, compact = fal
         </div>
       )}
 
-      {/* Debug Information (only in development) */}
-      {showAllFields && process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 bg-gray-100 p-3 rounded-lg border">
-          <p className="text-xs text-gray-600 mb-2 font-medium">Debug Info:</p>
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>ID: {member._id}</p>
-            <p>Created: {member.createdAt ? formatDate(member.createdAt) : 'N/A'}</p>
-            <p>Updated: {member.updatedAt ? formatDate(member.updatedAt) : 'N/A'}</p>
-          </div>
-        </div>
-      )}
       </div>
     </div>
   );

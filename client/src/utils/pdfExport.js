@@ -163,6 +163,81 @@ export const exportToPDF = async (elementId, filename, options = {}) => {
 };
 
 // Specialized function for exporting family trees with better handling of large content
+export const exportReactD3TreeToPDF = async (containerId, filename) => {
+  try {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      throw new Error(`Container with ID "${containerId}" not found`);
+    }
+
+    const svg = container.querySelector('svg');
+    if (!svg) {
+      throw new Error('React D3 tree SVG not found');
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const width = Math.max(rect.width, svg.viewBox?.baseVal?.width || 0) || 1200;
+    const height = Math.max(rect.height, svg.viewBox?.baseVal?.height || 0) || 800;
+
+    const clonedSvg = svg.cloneNode(true);
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clonedSvg.setAttribute('width', width);
+    clonedSvg.setAttribute('height', height);
+    if (!clonedSvg.getAttribute('viewBox')) {
+      clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    }
+
+    const serializer = new XMLSerializer();
+    const svgData = serializer.serializeToString(clonedSvg);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+
+    await new Promise((resolve, reject) => {
+      img.onload = () => {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(url);
+        reject(err);
+      };
+      img.src = url;
+    });
+
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const isLandscape = width >= height;
+    const pageWidth = isLandscape ? 420 : 297;
+    const pageHeight = isLandscape ? 297 : 420;
+    const pdf = new jsPDF(isLandscape ? 'l' : 'p', 'mm', 'a3');
+
+    const margin = 10;
+    const availableWidth = pageWidth - margin * 2;
+    const availableHeight = pageHeight - margin * 2;
+    const ratio = Math.min(availableWidth / width, availableHeight / height);
+    const imgWidth = width * ratio;
+    const imgHeight = height * ratio;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+
+    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+    pdf.save(filename);
+    return true;
+  } catch (error) {
+    console.error('Error exporting React D3 tree PDF:', error);
+    throw error;
+  }
+};
+
 export const exportTreeToPDF = async (elementId, filename, options = {}) => {
   try {
     const element = document.getElementById(elementId);

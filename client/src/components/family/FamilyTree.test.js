@@ -35,7 +35,6 @@ jest.mock('./ModernFamilyTree', () => () => <div>ModernFamilyTree</div>);
 jest.mock('./CardFamilyTree', () => () => <div>CardFamilyTree</div>);
 jest.mock('./EnhancedFamilyTree', () => () => <div>EnhancedFamilyTree</div>);
 jest.mock('./ComprehensiveFamilyTree', () => () => <div>ComprehensiveFamilyTree</div>);
-jest.mock('./VisualFamilyTree', () => () => <div>VisualFamilyTree</div>);
 jest.mock('./InteractiveFamilyTree', () => () => <div>InteractiveFamilyTree</div>);
 jest.mock('./FamilyTreePDFExport', () => () => <div>FamilyTreePDFExport</div>);
 
@@ -54,11 +53,10 @@ describe('FamilyTree Role-Based Views', () => {
       </BrowserRouter>
     );
 
-    // Should only show the horizontal view button
-    expect(screen.getByText('Horizontal Tree')).toBeInTheDocument();
-    expect(screen.queryByText('Interactive Tree with Relationships')).not.toBeInTheDocument();
+    // Should only show the interactive family tree for regular users
+    expect(screen.getByText('Interactive Family Tree')).toBeInTheDocument();
+    expect(screen.queryByText('React D3 Tree (Couples)')).not.toBeInTheDocument();
     expect(screen.queryByText('Visual Tree with Relationships')).not.toBeInTheDocument();
-    expect(screen.queryByText('Radial Tree')).not.toBeInTheDocument();
   });
 
   test('shows all views for admin users', () => {
@@ -71,17 +69,12 @@ describe('FamilyTree Role-Based Views', () => {
     );
 
     // Should show all view buttons for admin
-    expect(screen.getByText('Interactive Tree with Relationships')).toBeInTheDocument();
-    expect(screen.getByText('Visual Tree with Relationships')).toBeInTheDocument();
-    expect(screen.getByText('All Members & Relationships')).toBeInTheDocument();
+    expect(screen.getByText('React D3 Tree (Couples)')).toBeInTheDocument();
     expect(screen.getByText('Enhanced Tree')).toBeInTheDocument();
-    expect(screen.getByText('Radial Tree')).toBeInTheDocument();
     expect(screen.getByText('Collapsible Tree')).toBeInTheDocument();
     expect(screen.getByText('Horizontal Tree')).toBeInTheDocument();
-    expect(screen.getByText('Vertical Tree')).toBeInTheDocument();
     expect(screen.getByText('Text View')).toBeInTheDocument();
-    expect(screen.getByText('Pedigree Chart')).toBeInTheDocument();
-    expect(screen.getByText('Timeline View')).toBeInTheDocument();
+    expect(screen.queryByText('Visual Tree with Relationships')).not.toBeInTheDocument();
   });
 
   test('shows all views for users with admin role', () => {
@@ -94,12 +87,12 @@ describe('FamilyTree Role-Based Views', () => {
     );
 
     // Should show all view buttons for admin role
-    expect(screen.getByText('Interactive Tree with Relationships')).toBeInTheDocument();
-    expect(screen.getByText('Pedigree Chart')).toBeInTheDocument();
-    expect(screen.getByText('Timeline View')).toBeInTheDocument();
+    expect(screen.getByText('React D3 Tree (Couples)')).toBeInTheDocument();
+    expect(screen.getByText('Enhanced Tree')).toBeInTheDocument();
+    expect(screen.getByText('Collapsible Tree')).toBeInTheDocument();
   });
 
-  test('defaults to horizontal view for regular users', () => {
+  test('defaults to interactive family tree for regular users', () => {
     mockAuthContext.user = { email: 'user@example.com' };
 
     render(
@@ -108,12 +101,12 @@ describe('FamilyTree Role-Based Views', () => {
       </BrowserRouter>
     );
 
-    // The horizontal button should be active (blue background)
-    const horizontalButton = screen.getByText('Horizontal Tree');
-    expect(horizontalButton).toHaveClass('bg-blue-600');
+    // The interactive family tree button should be active (blue background)
+    const button = screen.getByText('Interactive Family Tree');
+    expect(button).toHaveClass('bg-blue-600');
   });
 
-  test('defaults to comprehensive view for admins without specific member', () => {
+  test('defaults to react d3 view for admins without specific member', () => {
     mockAuthContext.user = { isAdmin: true, email: 'admin@example.com' };
     mockParams.serNo = null;
 
@@ -123,8 +116,8 @@ describe('FamilyTree Role-Based Views', () => {
       </BrowserRouter>
     );
 
-    // The comprehensive button should be active for admins
-    const comprehensiveButton = screen.getByText('All Members & Relationships');
-    expect(comprehensiveButton).toHaveClass('bg-blue-600');
+    // The React D3 button should be active for admins without specific member
+    const d3Button = screen.getByText('React D3 Tree (Couples)');
+    expect(d3Button).toHaveClass('bg-blue-600');
   });
 });

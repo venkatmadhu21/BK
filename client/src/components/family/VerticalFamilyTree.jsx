@@ -22,7 +22,17 @@ const VerticalTreeNode = ({ node, level }) => {
   };
   
   const hasChildren = node.children && node.children.length > 0;
-  const nodeClasses = `vertical-tree-node ${node.attributes.gender === 'Male' ? 'male' : 'female'} ${hasChildren ? 'has-children' : ''}`;
+  const normalizedGender = (node.attributes.gender || '').toString().trim().toLowerCase();
+  const genderClass = ['male', 'm'].includes(normalizedGender)
+    ? 'male'
+    : ['female', 'f'].includes(normalizedGender)
+      ? 'female'
+      : 'unknown';
+  const nodeClasses = `vertical-tree-node ${genderClass} ${hasChildren ? 'has-children' : ''}`;
+  const serialNumber = Number(node.attributes.serNo) || 0;
+  const fallbackIndex = (serialNumber % 8) + 1;
+  const profilePrefix = genderClass === 'female' ? 'female' : 'male';
+  const profileFallback = `/images/profiles/${profilePrefix}${fallbackIndex}.jpg`;
   
   return (
     <div className="vertical-tree-item" style={{ paddingLeft: `${level * 20}px` }}>
@@ -31,12 +41,12 @@ const VerticalTreeNode = ({ node, level }) => {
         <div className="node-content">
           <div className="node-photo">
             <img 
-              src={node.attributes.profilePicture || (node.attributes.gender === 'Male' ? `/images/profiles/male${(node.attributes.serNo % 8) + 1}.jpg` : `/images/profiles/female${(node.attributes.serNo % 8) + 1}.jpg`)}
+              src={node.attributes.profilePicture || profileFallback}
               alt={node.name}
               className="profile-image"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = node.attributes.gender === 'Male' ? '/images/profiles/male1.jpg' : '/images/profiles/female1.jpg';
+                e.target.src = `/images/profiles/${profilePrefix}1.jpg`;
               }}
             />
           </div>

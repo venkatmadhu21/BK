@@ -1,6 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../utils/api';
 import './GalleryView.css';
+
+const SORT_OPTIONS = [
+  { value: 'uploadedAt', label: 'Newest Upload' },
+  { value: 'albumCreatedAt', label: 'Album Created' },
+  { value: 'albumTitle', label: 'Album Title' },
+  { value: 'itemTitle', label: 'Item Title' },
+  { value: 'year', label: 'Year' }
+];
+
+const DEFAULT_FILTERS = {
+  type: 'all',
+  year: 'all',
+  tags: [],
+  uploaders: [],
+  sortBy: 'uploadedAt',
+  sortOrder: 'desc',
+  search: ''
+};
 
 const GalleryView = () => {
   const [photos, setPhotos] = useState([]);
@@ -10,26 +28,16 @@ const GalleryView = () => {
   const [error, setError] = useState('');
 
   // Filters
-  const [filters, setFilters] = useState({
-    type: 'all',
-    year: 'all',
-    tags: []
-  });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedTag, setSelectedTag] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const PHOTOS_PER_PAGE = 20;
 
   useEffect(() => {
     fetchGalleryStats();
-    fetchPhotos();
   }, []);
-
-  useEffect(() => {
-    setPage(1);
-    fetchPhotos();
-  }, [filters]);
 
   const fetchGalleryStats = async () => {
     try {
@@ -40,14 +48,18 @@ const GalleryView = () => {
     }
   };
 
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
         type: filters.type,
         year: filters.year,
         tags: filters.tags.join(','),
-        page: page,
+        uploader: filters.uploaders.join(','),
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+        search: filters.search,
+        page,
         limit: PHOTOS_PER_PAGE
       };
 
@@ -61,25 +73,68 @@ const GalleryView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, page]);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
 
   const handleTypeFilter = (type) => {
-    setFilters({ ...filters, type });
+    setFilters(prev => ({ ...prev, type }));
+    setPage(1);
   };
 
   const handleYearFilter = (year) => {
-    setFilters({ ...filters, year });
+    setFilters(prev => ({ ...prev, year }));
+    setPage(1);
   };
 
   const handleTagClick = (tag) => {
-    const newTags = filters.tags.includes(tag)
-      ? filters.tags.filter(t => t !== tag)
-      : [...filters.tags, tag];
-    setFilters({ ...filters, tags: newTags });
+    setFilters(prev => {
+      const newTags = prev.tags.includes(tag)
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag];
+      return { ...prev, tags: newTags };
+    });
+    setPage(1);
+  };
+
+  const handleUploaderToggle = (id) => {
+    setFilters(prev => {
+      const newUploaders = prev.uploaders.includes(id)
+        ? prev.uploaders.filter(u => u !== id)
+        : [...prev.uploaders, id];
+      return { ...prev, uploaders: newUploaders };
+    });
+    setPage(1);
+  };
+
+  const handleSortChange = (value) => {
+    setFilters(prev => ({ ...prev, sortBy: value }));
+    setPage(1);
+  };
+
+  const handleSortOrderChange = (order) => {
+    setFilters(prev => ({ ...prev, sortOrder: order }));
+    setPage(1);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setFilters(prev => ({ ...prev, search: searchInput }));
+    setPage(1);
+  };
+
+  const handleSearchClear = () => {
+    setSearchInput('');
+    setFilters(prev => ({ ...prev, search: '' }));
+    setPage(1);
   };
 
   const clearFilters = () => {
-    setFilters({ type: 'all', year: 'all', tags: [] });
+    setFilters(DEFAULT_FILTERS);
+    setSearchInput('');
+    setPage(1);
   };
 
   if (!stats) {
@@ -115,12 +170,35 @@ const GalleryView = () => {
           <div className="filter-section">
             <div className="filter-header">
               <h3>Filters</h3>
-              {(filters.type !== 'all' || filters.year !== 'all' || filters.tags.length > 0) && (
+              {(filters.type !== 'all' ||
+                filters.year !== 'all' ||
+                filters.tags.length > 0 ||
+                filters.uploaders.length > 0 ||
+                filters.search ||
+                filters.sortBy !== 'uploadedAt' ||
+                filters.sortOrder !== 'desc') && (
                 <button className="clear-filters-btn" onClick={clearFilters}>
                   Clear All
                 </button>
               )}
             </div>
+
+            <form className="filter-search" onSubmit={handleSearchSubmit}>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search by album, title, caption, or person"
+              />
+              <div className="search-actions">
+                <button type="submit" className="search-btn">Search</button>
+                {filters.search && (
+                  <button type="button" className="clear-search-btn" onClick={handleSearchClear}>
+                    Reset
+                  </button>
+                )}
+              </div>
+            </form>
 
             {/* Type Filter */}
             <div className="filter-group">
@@ -191,6 +269,57 @@ const GalleryView = () => {
                 </div>
               </div>
             )}
+
+            {/* Uploader Filter */}
+            {stats.uploaders && stats.uploaders.length > 0 && (
+              <div className="filter-group">
+                <h4>Uploaded By</h4>
+                <div className="uploader-list">
+                  {stats.uploaders.map(uploader => (
+                    <label key={uploader.id} className="uploader-option">
+                      <input
+                        type="checkbox"
+                        checked={filters.uploaders.includes(uploader.id)}
+                        onChange={() => handleUploaderToggle(uploader.id)}
+                      />
+                      <span>{uploader.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sort Controls */}
+            <div className="filter-group">
+              <h4>Sort By</h4>
+              <select
+                value={filters.sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="sort-select"
+              >
+                {SORT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="sort-order">
+                <button
+                  type="button"
+                  className={filters.sortOrder === 'asc' ? 'active' : ''}
+                  onClick={() => handleSortOrderChange('asc')}
+                >
+                  Asc
+                </button>
+                <button
+                  type="button"
+                  className={filters.sortOrder === 'desc' ? 'active' : ''}
+                  onClick={() => handleSortOrderChange('desc')}
+                >
+                  Desc
+                </button>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -218,7 +347,14 @@ const GalleryView = () => {
                     <div className="photo-info">
                       <h4>{photo.albumTitle}</h4>
                       <p className="photo-item">{photo.itemTitle}</p>
-                      <p className="photo-year">{photo.year}</p>
+                      <div className="photo-meta">
+                        <span>{photo.year}</span>
+                        {photo.uploadedBy && (
+                          <span>
+                            {photo.uploadedBy.firstName} {photo.uploadedBy.lastName}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

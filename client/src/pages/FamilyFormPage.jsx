@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
+import { CheckCircle } from "lucide-react";
 import ParentAutocomplete from "./ParentAutocomplete";
 import SpouseAutocomplete from "./SpouseAutocomplete";
 import MultiStepForm from "./MultiStepForm.jsx";
@@ -346,6 +347,7 @@ export default function FamilyFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const {
     register,
@@ -414,6 +416,7 @@ export default function FamilyFormPage() {
     setIsSubmitting(true);
     setSubmitMessage("");
     setSubmitError("");
+    setShowSuccessModal(false);
 
     const transformedData = {
       personalDetails: {
@@ -440,20 +443,23 @@ export default function FamilyFormPage() {
       });
 
       if (response.data.success) {
-        const successMessage = response.data.message || "Family member added successfully!";
+        const successMessage = "Form submitted successfully! Your details have been received. Once approved by the admin, your login credentials will be sent to your registered email address.";
         setSubmitMessage(successMessage);
+        setSubmitError("");
+        setShowSuccessModal(true);
         addToast(successMessage, "success");
         reset(initialFormValues);
         setCurrentStep(1);
-        navigate("/dashboard");
       } else {
         const message = response.data.message || "Unable to submit the form";
         setSubmitError(message);
+        setShowSuccessModal(false);
         addToast(message, "error");
       }
     } catch (error) {
       const message = error.response?.data?.message || "An error occurred while submitting the form";
       setSubmitError(message);
+      setShowSuccessModal(false);
       addToast(message, "error");
     } finally {
       setIsSubmitting(false);
@@ -1523,9 +1529,47 @@ export default function FamilyFormPage() {
     }
   };
 
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+  };
+
+  const handleSuccessModalProceed = () => {
+    setShowSuccessModal(false);
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-slate-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4">
+            <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <CheckCircle className="h-10 w-10" />
+              </div>
+              <h2 className="mt-6 text-2xl font-semibold text-slate-900">Form submitted successfully</h2>
+              <p className="mt-3 text-sm text-slate-600">
+                {submitMessage || "Form submitted successfully! Your details have been received. Once approved by the admin, your login credentials will be sent to your registered email address."}
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  className="w-full rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-700 sm:w-auto"
+                  onClick={handleSuccessModalClose}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:from-orange-600 hover:to-orange-700 sm:w-auto"
+                  onClick={handleSuccessModalProceed}
+                >
+                  Go to Home
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-slate-900">Family Information Form</h1>
           <p className="mt-2 text-slate-600">
@@ -1533,7 +1577,13 @@ export default function FamilyFormPage() {
           </p>
         </div>
 
-        {submitMessage && (
+        {submitError && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+            {submitError}
+          </div>
+        )}
+
+        {submitMessage && !showSuccessModal && (
           <div
             className={`mb-6 rounded-lg p-4 ${
               submitMessage.includes("successfully")

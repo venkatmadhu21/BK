@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const AccessibilityContext = createContext();
 
@@ -15,6 +15,8 @@ export const AccessibilityProvider = ({ children }) => {
   const [lineHeight, setLineHeight] = useState(1.5); // Line height multiplier
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+  const isVoiceEnabledRef = useRef(isVoiceEnabled);
 
   // No localStorage - settings are session-based only
   
@@ -38,6 +40,15 @@ export const AccessibilityProvider = ({ children }) => {
       document.body.classList.remove('accessibility-active');
     }
   }, [fontSize, lineHeight]);
+
+  useEffect(() => {
+    isVoiceEnabledRef.current = isVoiceEnabled;
+    if (isVoiceEnabled) {
+      startVoiceRecognition();
+    } else {
+      stopVoiceRecognition();
+    }
+  }, [isVoiceEnabled]);
 
   const increaseFontSize = () => {
     const newSize = Math.min(fontSize + 10, 150); // Max 150%
@@ -70,22 +81,13 @@ export const AccessibilityProvider = ({ children }) => {
   };
 
   const toggleVoiceCommands = () => {
-    const newVoiceState = !isVoiceEnabled;
-    setIsVoiceEnabled(newVoiceState);
-    
-    if (newVoiceState) {
-      startVoiceRecognition();
-    } else {
-      stopVoiceRecognition();
-    }
+    setIsVoiceEnabled((prev) => !prev);
   };
 
   const startVoiceRecognition = () => {
     console.log('🎤 Attempting to start voice recognition...');
-    
-    // Check browser support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       console.error('❌ Speech recognition not supported in this browser');
       alert('Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
@@ -93,10 +95,12 @@ export const AccessibilityProvider = ({ children }) => {
       return;
     }
 
+    stopVoiceRecognition();
+
     try {
       const recognition = new SpeechRecognition();
-      
-      // Enhanced configuration
+      recognitionRef.current = recognition;
+
       recognition.continuous = true;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
@@ -105,29 +109,6 @@ export const AccessibilityProvider = ({ children }) => {
       recognition.onstart = () => {
         console.log('✅ Voice recognition started successfully');
         setIsListening(true);
-        
-        // Show visual feedback
-        const notification = document.createElement('div');
-        notification.textContent = '🎤 Voice commands active - Say "increase font", "high contrast", etc.';
-        notification.style.cssText = `
-          position: fixed;
-          top: 100px;
-          right: 20px;
-          background: #3b82f6;
-          color: white;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-size: 14px;
-          z-index: 9999;
-          max-width: 300px;
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 3000);
       };
 
       recognition.onresult = (event) => {
@@ -143,7 +124,7 @@ export const AccessibilityProvider = ({ children }) => {
       recognition.onerror = (event) => {
         console.error('❌ Speech recognition error:', event.error);
         setIsListening(false);
-        
+
         let errorMessage = '';
         switch (event.error) {
           case 'not-allowed':
@@ -152,7 +133,7 @@ export const AccessibilityProvider = ({ children }) => {
             break;
           case 'no-speech':
             console.log('⏸️ No speech detected, continuing to listen...');
-            return; // Don't show alert for no-speech
+            return;
           case 'audio-capture':
             errorMessage = 'No microphone found. Please connect a microphone and try again.';
             setIsVoiceEnabled(false);
@@ -163,7 +144,7 @@ export const AccessibilityProvider = ({ children }) => {
           default:
             errorMessage = `Voice recognition error: ${event.error}`;
         }
-        
+
         if (errorMessage) {
           alert(errorMessage);
         }
@@ -172,20 +153,19 @@ export const AccessibilityProvider = ({ children }) => {
       recognition.onend = () => {
         console.log('🔄 Voice recognition ended');
         setIsListening(false);
-        
-        // Auto-restart if still enabled and no error occurred
-        if (isVoiceEnabled) {
+
+        if (isVoiceEnabledRef.current) {
           setTimeout(() => {
-            console.log('🔄 Restarting voice recognition...');
-            startVoiceRecognition();
+            if (isVoiceEnabledRef.current) {
+              console.log('🔄 Restarting voice recognition...');
+              startVoiceRecognition();
+            }
           }, 1000);
         }
       };
 
       console.log('🚀 Starting speech recognition...');
       recognition.start();
-      window.speechRecognition = recognition;
-      
     } catch (error) {
       console.error('❌ Failed to initialize voice recognition:', error);
       setIsVoiceEnabled(false);
@@ -195,10 +175,19 @@ export const AccessibilityProvider = ({ children }) => {
   };
 
   const stopVoiceRecognition = () => {
-    if (window.speechRecognition) {
-      window.speechRecognition.stop();
-      setIsListening(false);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error('❌ Error stopping voice recognition:', error);
+      }
+      recognitionRef.current = null;
     }
+    setIsListening(false);
   };
 
   const handleVoiceCommand = (command) => {
@@ -310,6 +299,9 @@ export const AccessibilityProvider = ({ children }) => {
         }
       };
     }
+    return () => {
+      stopVoiceRecognition();
+    };
   }, [fontSize, lineHeight, isVoiceEnabled, isListening]);
 
   const value = {

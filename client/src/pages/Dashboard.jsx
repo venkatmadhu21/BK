@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Users,
@@ -7,7 +7,6 @@ import {
   Calendar,
   User,
   TrendingUp,
-  Clock,
   Heart,
   MessageCircle,
   Link as LinkIcon,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react';
 import heroImage from '../assets/images/hero.jpg';
 import ionBal from '../assets/images/ion-bal.jpg';
+import api from '../utils/api';
 import '../styles/heritage-background.css';
 
 // Small helper for accent ring without changing primary palette
@@ -38,25 +38,99 @@ const Card = ({ children, className = '' }) => (
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [quickStats, setQuickStats] = useState([
+    { title: 'Family Members', value: '0', icon: Users, tint: 'bg-orange-100 text-orange-600', chip: '' },
+    { title: 'Recent News', value: '0', icon: Newspaper, tint: 'bg-emerald-100 text-emerald-600', chip: '' },
+    { title: 'Upcoming Events', value: '0', icon: Calendar, tint: 'bg-violet-100 text-violet-600', chip: '' },
+    { title: 'New Photos/albums', value: '0', icon: TrendingUp, tint: 'bg-amber-100 text-amber-700', chip: '' },
+  ]);
+  const [recentNews, setRecentNews] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
-  const quickStats = [
-    { title: 'Family Members', value: '156', icon: Users, tint: 'bg-orange-100 text-orange-600', chip: '+12 this month' },
-    { title: 'Recent News', value: '8', icon: Newspaper, tint: 'bg-emerald-100 text-emerald-600', chip: '3 new this week' },
-    { title: 'Upcoming Events', value: '5', icon: Calendar, tint: 'bg-violet-100 text-violet-600', chip: '2 this month' },
-    { title: 'New Photos/albums', value: '10', icon: TrendingUp, tint: 'bg-amber-100 text-amber-700', chip: '+5 this week' },
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const recentNews = [
-    { id: 1, title: 'Annual Family Reunion 2024 Announced', summary: 'Join us for our biggest family gathering of the year...', author: 'Rajesh Gogte', date: '2 days ago', likes: 24, comments: 8 },
-    { id: 2, title: 'New Baby Born in the Family', summary: 'Congratulations to Priya and Amit on their new arrival...', author: 'Sunita Gogte', date: '5 days ago', likes: 45, comments: 12 },
-    { id: 3, title: 'Family Business Milestone Achievement', summary: 'Our family business has reached a significant milestone...', author: 'Mohan Gogte', date: '1 week ago', likes: 32, comments: 6 },
-  ];
+    const fetchDashboardData = async () => {
+      const [familyResult, newsResult, eventsResult, mediaResult] = await Promise.allSettled([
+        api.get('/api/family'),
+        api.get('/api/news', {
+          params: {
+            limit: 5,
+            sortBy: 'publishDate',
+            sortOrder: 'desc'
+          }
+        }),
+        api.get('/api/events', {
+          params: {
+            status: 'Upcoming',
+            limit: 5,
+            sortBy: 'startDate',
+            sortOrder: 'asc'
+          }
+        }),
+        api.get('/api/media')
+      ]);
 
-  const upcomingEvents = [
-    { id: 1, title: 'Diwali Celebration', date: 'Nov 12, 2024', time: '6:00 PM', location: 'Community Hall', attendees: 45 },
-    { id: 2, title: 'Monthly Family Meeting', date: 'Nov 20, 2024', time: '10:00 AM', location: 'Gogte Residence', attendees: 12 },
-    { id: 3, title: "Children's Birthday Party", date: 'Nov 25, 2024', time: '4:00 PM', location: 'Garden Area', attendees: 28 },
-  ];
+      if (!isMounted) {
+        return;
+      }
+
+      const membersData = familyResult.status === 'fulfilled' ? familyResult.value?.data || [] : [];
+      const newsData = newsResult.status === 'fulfilled' ? newsResult.value?.data?.news || [] : [];
+      const eventsData = eventsResult.status === 'fulfilled' ? eventsResult.value?.data?.events || [] : [];
+      const mediaData = mediaResult.status === 'fulfilled' ? mediaResult.value?.data?.media || [] : [];
+
+      const membersCount = Array.isArray(membersData) ? membersData.length : 0;
+      const newsCount = Array.isArray(newsData) ? newsData.length : 0;
+      const eventsCount = Array.isArray(eventsData) ? eventsData.length : 0;
+      const mediaCount = Array.isArray(mediaData) ? mediaData.length : 0;
+
+      setQuickStats([
+        { title: 'Family Members', value: membersCount.toString(), icon: Users, tint: 'bg-orange-100 text-orange-600', chip: membersCount ? `${membersCount} total` : '' },
+        { title: 'Recent News', value: newsCount.toString(), icon: Newspaper, tint: 'bg-emerald-100 text-emerald-600', chip: newsCount ? `${newsCount} published` : '' },
+        { title: 'Upcoming Events', value: eventsCount.toString(), icon: Calendar, tint: 'bg-violet-100 text-violet-600', chip: eventsCount ? `${eventsCount} scheduled` : '' },
+        { title: 'New Photos/albums', value: mediaCount.toString(), icon: TrendingUp, tint: 'bg-amber-100 text-amber-700', chip: mediaCount ? `${mediaCount} items` : '' },
+      ]);
+
+      const newsItems = newsData.slice(0, 3).map((item) => ({
+        id: item._id,
+        title: item.title,
+        summary: item.summary || item.content?.slice(0, 140) || '',
+        author: item.author ? `${item.author.firstName || ''} ${item.author.lastName || ''}`.trim() || 'Unknown' : 'Unknown',
+        date: item.publishDate ? new Date(item.publishDate).toLocaleDateString() : '',
+        likes: Array.isArray(item.likes) ? item.likes.length : 0,
+        comments: Array.isArray(item.comments) ? item.comments.length : 0
+      }));
+      setRecentNews(newsItems);
+
+      const now = new Date();
+      const events = eventsData
+        .filter((event) => {
+          if (!event?.startDate) return true;
+          const eventDate = new Date(event.startDate);
+          return !Number.isNaN(eventDate) && eventDate >= now;
+        })
+        .slice(0, 3)
+        .map((event) => ({
+          id: event._id,
+          title: event.title,
+          date: event.startDate ? new Date(event.startDate).toLocaleDateString() : '',
+          time: event.startTime || '',
+          location: event.venue?.name || '',
+          attendees: Array.isArray(event.attendees) ? event.attendees.length : 0
+        }));
+      setUpcomingEvents(events);
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   return (
     <div className="heritage-bg min-h-screen relative overflow-hidden">
@@ -98,8 +172,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="hidden sm:flex items-center gap-4">
-              <div className="w-20 h-20 rounded-3xl overflow-hidden border-3 border-white/80 shadow-xl shadow-orange-500/30">
-                <img src={ionBal} alt="Bal Krishna" className="w-full h-full object-cover" />
+              <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-white/80 shadow-xl shadow-orange-500/30">
+                <img src={ionBal} alt="Bal Krishna" className="w-full h-full object-cover rounded-full" />
               </div>
               <div className="bg-white/20 rounded-2xl p-4 shadow-lg shadow-orange-900/20 backdrop-blur-lg">
                 <User size={48} className="text-white" />
@@ -121,9 +195,11 @@ const Dashboard = () => {
                     {stat.value}
                     <span className="text-xs font-medium text-gray-400">today</span>
                   </p>
-                  <span className="inline-flex mt-3 text-xs px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200/60 shadow-sm shadow-orange-100">
-                    {stat.chip}
-                  </span>
+                  {stat.chip ? (
+                    <span className="inline-flex mt-3 text-xs px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200/60 shadow-sm shadow-orange-100">
+                      {stat.chip}
+                    </span>
+                  ) : null}
                 </div>
                 <div className={`${stat.tint} rounded-2xl p-3 xs:p-3.5 shadow-inner shadow-white/40`}
                   style={{
@@ -163,9 +239,13 @@ const Dashboard = () => {
                     <span>{news.date}</span>
                     <span className="flex items-center gap-1"><Heart size={12} /> {news.likes} • <MessageCircle size={12} /> {news.comments}</span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 text-lg mb-1.5 leading-tight hover:text-orange-600 cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/news', { state: { newsId: news.id } })}
+                    className="font-semibold text-left text-gray-900 text-lg mb-1.5 leading-tight hover:text-orange-600"
+                  >
                     {news.title}
-                  </h3>
+                  </button>
                   <p className="text-gray-600 text-sm mb-3 leading-relaxed">{news.summary}</p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <div className="flex items-center gap-3">
@@ -174,7 +254,11 @@ const Dashboard = () => {
                         {news.author}
                       </span>
                     </div>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold text-xs inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/news', { state: { newsId: news.id } })}
+                      className="text-orange-600 hover:text-orange-700 font-semibold text-xs inline-flex items-center gap-1"
+                    >
                       Read Story
                       <ExternalLink size={12} />
                     </button>
@@ -205,16 +289,24 @@ const Dashboard = () => {
                 <div key={event.id} className="relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 p-5 shadow-sm hover:shadow-lg transition-shadow">
                   <div className="absolute -top-10 -right-10 w-24 h-24 bg-orange-200/30 blur-3xl rounded-full" />
                   <div className="relative">
-                    <h3 className="font-semibold text-gray-900 text-lg mb-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/events', { state: { eventId: event.id } })}
+                      className="font-semibold text-left text-gray-900 text-lg mb-2 flex items-center gap-2 hover:text-orange-600"
+                    >
                       <span className="inline-flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
                       {event.title}
-                    </h3>
+                    </button>
                     <div className="space-y-2 text-sm text-gray-600">
                       <p className="flex items-center gap-2"><Calendar size={14} className="text-orange-500" />{event.date} at {event.time}</p>
                       <p className="flex items-center gap-2"><Users size={14} className="text-orange-500" />{event.attendees} attending</p>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
-                      <button className="text-orange-600 hover:text-orange-700 text-sm font-semibold inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/events', { state: { eventId: event.id } })}
+                        className="text-orange-600 hover:text-orange-700 text-sm font-semibold inline-flex items-center gap-2"
+                      >
                         View Details
                         <ExternalLink size={12} />
                       </button>

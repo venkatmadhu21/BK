@@ -122,6 +122,27 @@ const logAdminAction = async (action, userId, details) => {
   console.log(`ADMIN ACTION: ${action} by user ${userId} - ${JSON.stringify(details)}`);
 };
 
+const mergeDeepPreserving = (target, source) => {
+  const base = Array.isArray(target) ? [...target] : { ...target };
+  Object.keys(source || {}).forEach((key) => {
+    const incoming = source[key];
+    if (incoming === undefined) {
+      return;
+    }
+    if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+      const existing = base[key] && typeof base[key] === 'object' && !Array.isArray(base[key]) ? base[key] : {};
+      base[key] = mergeDeepPreserving(existing, incoming);
+      return;
+    }
+    if (Array.isArray(incoming)) {
+      base[key] = [...incoming];
+      return;
+    }
+    base[key] = incoming;
+  });
+  return base;
+};
+
 router.get('/dashboard', adminAuth, async (req, res) => {
   try {
     const [userCount, familyCount, newsCount, eventCount, loginCount] = await Promise.all([
@@ -628,7 +649,15 @@ router.put('/heirarchy-form/:id', adminAuth, async (req, res) => {
     const wasApproved = currentEntry.isapproved;
     const isBeingApproved = req.body.isapproved === true && !wasApproved;
 
-    const entry = await HeirarchyFormEntry.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const mergedData = mergeDeepPreserving(currentEntry.toObject(), req.body);
+    delete mergedData._id;
+    delete mergedData.id;
+    delete mergedData.__v;
+    delete mergedData.createdAt;
+    delete mergedData.updatedAt;
+
+    currentEntry.set(mergedData);
+    const entry = await currentEntry.save();
 
     if (isBeingApproved) {
       try {

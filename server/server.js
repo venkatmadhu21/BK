@@ -18,6 +18,7 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/family", require("./routes/familyRoutes"));
 app.use("/api/news", require("./routes/news"));
 app.use("/api/events", require("./routes/events"));
+app.use("/api/media", require("./routes/media"));
 app.use("/api/admin", require("./routes/admin"));
 // app.use("/api/upload", require("./routes/upload")); // TODO: Create upload.js or use gallery endpoints
 app.use("/api/legacy-family", require("./routes/family"));

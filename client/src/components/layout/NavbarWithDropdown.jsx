@@ -70,8 +70,6 @@ const publicNavLinks = [
   { path: '/media', label: t('nav.media'), icon: ImageIcon },
   { path: '/news', label: t('nav.news'), icon: Newspaper },
   { path: '/events', label: t('nav.events'), icon: Calendar },
-
-  // Replace Family Tree dropdown with a single button
   { path: '/family', label: 'Family Tree', icon: Users },
 ];
 

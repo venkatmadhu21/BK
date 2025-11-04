@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from 'lucide-react';
 import '../styles/heritage-background.css';
 
 const Register = () => {
   const { register, isAuthenticated, error, clearErrors } = useAuth();
   const { t } = useLanguage();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -85,6 +87,7 @@ const Register = () => {
     const result = await register(formData);
 
     if (result.success) {
+      addToast(t('auth.registrationPendingApproval'), 'info', 5000);
       navigate('/family-form');
     } else {
       setLoading(false);

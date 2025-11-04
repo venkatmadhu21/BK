@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const LegacyLogin = require('../models/LegacyLogin');
 const LegacyLoginCap = require('../models/LegacyLoginCap');
@@ -29,9 +30,27 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/profile', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
+    const { id: userId, source } = req.user || {};
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (source === 'legacy') {
+      return res.status(400).json({ message: 'Profile not available for legacy accounts' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user identifier' });
+    }
+
+    const user = await User.findById(userId)
       .select('-password')
       .populate('familyId');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     res.json(user);
   } catch (error) {
@@ -55,6 +74,20 @@ router.put('/profile', [
   }
 
   try {
+    const { id: userId, source } = req.user || {};
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (source === 'legacy') {
+      return res.status(400).json({ message: 'Profile updates are not supported for legacy accounts' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user identifier' });
+    }
+
     const {
       firstName,
       lastName,
@@ -67,33 +100,63 @@ router.put('/profile', [
       maritalStatus
     } = req.body;
 
+    const sanitizeString = (value) =>
+      typeof value === 'string' ? value.trim() : value;
+
+    const normalizedEmail = sanitizeString(email)?.toLowerCase();
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
     // Check if email is already taken by another user
     const existingUser = await User.findOne({ 
-      email, 
-      _id: { $ne: req.user.id } 
-    });
+      email: normalizedEmail, 
+      _id: { $ne: userId } 
+    }).lean();
 
     if (existingUser) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
+    let normalizedDate = null;
+    if (dateOfBirth) {
+      const parsedDate = new Date(dateOfBirth);
+      if (Number.isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ message: 'Invalid date of birth' });
+      }
+      normalizedDate = parsedDate;
+    }
+
+    const normalizedAddress = {
+      street: sanitizeString(address?.street) || '',
+      city: sanitizeString(address?.city) || '',
+      state: sanitizeString(address?.state) || '',
+      pincode: sanitizeString(address?.pincode) || '',
+      country: sanitizeString(address?.country) || 'India'
+    };
+
+    const updatePayload = {
+      firstName: sanitizeString(firstName),
+      lastName: sanitizeString(lastName),
+      email: normalizedEmail,
+      phone: sanitizeString(phone) || '',
+      dateOfBirth: normalizedDate,
+      profilePicture: typeof profilePicture === 'string' ? profilePicture : '',
+      address: normalizedAddress,
+      occupation: sanitizeString(occupation) || '',
+      maritalStatus: sanitizeString(maritalStatus) || 'Single'
+    };
+
     const user = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        $set: {
-          firstName,
-          lastName,
-          email,
-          phone,
-          dateOfBirth,
-          profilePicture,
-          address,
-          occupation,
-          maritalStatus
-        }
-      },
-      { new: true }
+      userId,
+      { $set: updatePayload },
+      { new: true, runValidators: true }
     ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     res.json(user);
   } catch (error) {
@@ -116,9 +179,26 @@ router.put('/change-password', [
   }
 
   try {
+    const { id: userId, source } = req.user || {};
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user.id);
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (source === 'legacy') {
+      return res.status(400).json({ message: 'Password changes are not supported for legacy accounts' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user identifier' });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     // Check current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);

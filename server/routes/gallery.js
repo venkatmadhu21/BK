@@ -14,53 +14,170 @@ const router = express.Router();
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const { type = 'all', year = 'all', tags = '', page = 1, limit = 20 } = req.query;
-    
+    const {
+      type = 'all',
+      year = 'all',
+      tags = '',
+      page = 1,
+      limit = 20,
+      search = '',
+      sortBy = 'uploadedAt',
+      sortOrder = 'desc',
+      uploader = ''
+    } = req.query;
+
+    const numericLimit = Math.max(1, Math.min(parseInt(limit, 10) || 20, 200));
+    const numericPage = Math.max(1, parseInt(page, 10) || 1);
+
     const query = { isPublic: true };
-    
+
     if (type && type !== 'all') {
       query.type = type;
     }
-    
+
     if (year && year !== 'all') {
-      query.year = parseInt(year);
+      const parsedYear = parseInt(year, 10);
+      if (!Number.isNaN(parsedYear)) {
+        query.year = parsedYear;
+      }
     }
-    
-    // Filter by tags (can be comma-separated)
+
     if (tags) {
-      const tagArray = tags.split(',').map(t => t.trim());
-      query.tags = { $in: tagArray };
+      const tagArray = tags
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+      if (tagArray.length) {
+        query.tags = { $in: tagArray };
+      }
     }
-    
+
     const albums = await Album.find(query)
       .populate('createdBy', 'firstName lastName profilePicture')
+      .populate({
+        path: 'photos.uploadedBy',
+        select: 'firstName lastName profilePicture'
+      })
       .populate('itemId')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-    
-    // Flatten photos from all albums
+      .sort({ createdAt: -1 });
+
     const allPhotos = [];
     albums.forEach(album => {
       album.photos.forEach(photo => {
+        const photoData = photo.toObject();
         allPhotos.push({
-          ...photo.toObject(),
+          ...photoData,
           albumId: album._id,
           albumTitle: album.title,
           itemType: album.type,
-          itemTitle: album.itemId?.title || 'Unknown',
+          itemTitle: album.itemId?.title || album.itemId?.name || 'Unknown',
           year: album.year,
-          createdBy: album.createdBy
+          createdBy: album.createdBy,
+          albumCreatedAt: album.createdAt
         });
       });
     });
-    
-    const total = await Album.countDocuments(query);
-    
+
+    const searchTerm = search.trim();
+    let filteredPhotos = allPhotos;
+
+    if (searchTerm) {
+      const regex = new RegExp(searchTerm, 'i');
+      filteredPhotos = filteredPhotos.filter(photo => {
+        const uploaderName = photo.uploadedBy
+          ? `${photo.uploadedBy.firstName || ''} ${photo.uploadedBy.lastName || ''}`.trim()
+          : '';
+        const creatorName = photo.createdBy
+          ? `${photo.createdBy.firstName || ''} ${photo.createdBy.lastName || ''}`.trim()
+          : '';
+        const tagLine = Array.isArray(photo.tags) ? photo.tags.join(' ') : '';
+        return (
+          regex.test(photo.albumTitle || '') ||
+          regex.test(photo.itemTitle || '') ||
+          regex.test(photo.caption || '') ||
+          regex.test(uploaderName) ||
+          regex.test(creatorName) ||
+          regex.test(tagLine)
+        );
+      });
+    }
+
+    if (uploader && uploader !== 'all') {
+      const uploaderIds = uploader
+        .split(',')
+        .map(id => id.trim())
+        .filter(Boolean);
+      if (uploaderIds.length) {
+        filteredPhotos = filteredPhotos.filter(photo => {
+          if (!photo.uploadedBy) {
+            return false;
+          }
+          const photoUploaderId = photo.uploadedBy._id?.toString();
+          return photoUploaderId && uploaderIds.includes(photoUploaderId);
+        });
+      }
+    }
+
+    const orderModifier = sortOrder === 'asc' ? 1 : -1;
+    filteredPhotos.sort((a, b) => {
+      const getComparable = (value) => {
+        if (value instanceof Date) {
+          return value.getTime();
+        }
+        if (typeof value === 'string') {
+          return value.toLowerCase();
+        }
+        return value ?? 0;
+      };
+
+      let aValue;
+      let bValue;
+
+      switch (sortBy) {
+        case 'albumTitle':
+          aValue = a.albumTitle || '';
+          bValue = b.albumTitle || '';
+          break;
+        case 'itemTitle':
+          aValue = a.itemTitle || '';
+          bValue = b.itemTitle || '';
+          break;
+        case 'year':
+          aValue = a.year || 0;
+          bValue = b.year || 0;
+          break;
+        case 'albumCreatedAt':
+          aValue = a.albumCreatedAt || a.uploadedAt || 0;
+          bValue = b.albumCreatedAt || b.uploadedAt || 0;
+          break;
+        case 'uploadedAt':
+        default:
+          aValue = a.uploadedAt || a.albumCreatedAt || 0;
+          bValue = b.uploadedAt || b.albumCreatedAt || 0;
+          break;
+      }
+
+      const left = getComparable(aValue);
+      const right = getComparable(bValue);
+
+      if (typeof left === 'string' && typeof right === 'string') {
+        if (left === right) {
+          return 0;
+        }
+        return left < right ? -1 * orderModifier : 1 * orderModifier;
+      }
+
+      return (left - right) * orderModifier;
+    });
+
+    const total = filteredPhotos.length;
+    const startIndex = (numericPage - 1) * numericLimit;
+    const paginatedPhotos = filteredPhotos.slice(startIndex, startIndex + numericLimit);
+
     res.json({
-      photos: allPhotos,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
+      photos: paginatedPhotos,
+      totalPages: Math.ceil(total / numericLimit) || 1,
+      currentPage: numericPage,
       total
     });
   } catch (error) {
@@ -78,12 +195,28 @@ router.get('/stats', auth, async (req, res) => {
     const years = await Album.distinct('year', { isPublic: true });
     
     // Get all tags
-    const albums = await Album.find({ isPublic: true }, 'tags');
+    const albums = await Album.find({ isPublic: true })
+      .select('tags photos')
+      .populate('photos.uploadedBy', 'firstName lastName');
     const tagsSet = new Set();
+    const uploaderMap = new Map();
     albums.forEach(album => {
       album.tags.forEach(tag => tagsSet.add(tag));
+      album.photos.forEach(photo => {
+        if (photo.uploadedBy) {
+          const uploaderId = photo.uploadedBy._id.toString();
+          if (!uploaderMap.has(uploaderId)) {
+            const name = `${photo.uploadedBy.firstName || ''} ${photo.uploadedBy.lastName || ''}`.trim() || 'Unknown';
+            uploaderMap.set(uploaderId, {
+              id: uploaderId,
+              name
+            });
+          }
+        }
+      });
     });
     const tags = Array.from(tagsSet);
+    const uploaders = Array.from(uploaderMap.values()).sort((a, b) => a.name.localeCompare(b.name));
     
     // Get counts by type
     const eventCount = await Album.countDocuments({ type: 'Event', isPublic: true });
@@ -96,6 +229,7 @@ router.get('/stats', auth, async (req, res) => {
     res.json({
       years: years.sort((a, b) => b - a),
       tags: tags.sort(),
+      uploaders,
       counts: {
         events: eventCount,
         news: newsCount,

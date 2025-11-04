@@ -51,6 +51,90 @@ const resources = {
         testButton: 'Test',
         stopButton: 'Stop'
       },
+      mediaPage: {
+        header: {
+          title: 'Family Memories',
+          description: 'Celebrate moments through our collection of family photos from events and milestones'
+        },
+        upload: {
+          title: 'Share Your Memories',
+          description: 'Upload photos with a title to add them to the family gallery.',
+          albumTitle: 'Album Title',
+          albumTitlePlaceholder: 'e.g. Wedding Celebrations',
+          descriptionLabel: 'Description (Optional)',
+          descriptionPlaceholder: 'Add a short description or story',
+          uploadInstructions: 'Click to browse files or drag and drop',
+          uploadLimit: 'Up to {{count}} images per upload. Each file must be under {{size}}MB.',
+          selectedImages: 'Selected Images',
+          clearAll: 'Clear All',
+          imageName: 'Image {{index}}',
+          uploadButton: 'Upload Memories',
+          uploading: 'Uploading...',
+          preparing: 'Preparing…',
+          success: 'Your photos have been uploaded to the gallery.',
+          error: 'Failed to upload photos. Please try again.',
+          loginRequired: 'Please log in to upload photos.'
+        },
+        communityUploads: {
+          title: 'Recent Community Uploads',
+          empty: 'No community uploads yet. Be the first to share!',
+          photos: '{{count}} {{count, plural, one {photo} other {photos}}}',
+          morePhotos: '+{{count}} more',
+          uploadedBy: 'Uploaded by {{name}}'
+        },
+        search: {
+          placeholder: 'Search albums by title or caption...'
+        },
+        filters: {
+          allTypes: 'All Albums',
+          events: 'Events',
+          news: 'News',
+          community: 'Community',
+          sortLabel: 'Sort by',
+          typeLabel: 'Type',
+          yearLabel: 'Year',
+          categoryLabel: 'Category',
+          eventTypeLabel: 'Event Type',
+          reset: 'Reset Filters',
+          yearsAll: 'All Years',
+          categoriesAll: 'All Categories',
+          eventTypesAll: 'All Event Types',
+          sortRecent: 'Newest',
+          sortOldest: 'Oldest',
+          sortTitle: 'Title (A-Z)',
+          sortPhotos: 'Most Photos'
+        },
+        sort: {
+          recent: 'Newest',
+          oldest: 'Oldest',
+          title: 'Title (A-Z)',
+          photos: 'Most Photos'
+        },
+        albums: {
+          eventType: 'Event',
+          newsType: 'News',
+          communityType: 'Community',
+          photoCount: '{{count}} {{count, plural, one {photo} other {photos}}}',
+          unknownUploader: 'Unknown'
+        },
+        lightbox: {
+          autoPlay: 'Auto-play',
+          download: 'Download',
+          preparing: 'Preparing…',
+          counter: '{{current}} / {{total}}',
+          date: '{{date, date, long}}',
+          thumbnailStrip: 'Image thumbnails'
+        },
+        emptyState: {
+          title: 'No memories yet',
+          noResults: 'No albums match your search. Try a different query.',
+          noAlbums: 'No photo albums available from events or news yet.'
+        },
+        loading: {
+          title: 'Gathering your memories...',
+          subtitle: 'This may take a moment'
+        }
+      },
       // Content Data - News Articles
       newsContent: {
         article1: {
@@ -212,6 +296,7 @@ const resources = {
         signInHere: 'Sign in here',
         loading: 'Creating Account...',
         register: 'Register',
+        registrationPendingApproval: 'Your registration will be reviewed by an administrator. Approved credentials will be emailed to you.',
         dontHaveAccount: "Don't have an account?",
         signUpHere: 'Sign up here',
         forgotPassword: 'Forgot your password?'
@@ -296,6 +381,90 @@ const resources = {
         buildingName: 'बाळकृष्ण निवास',
         testButton: 'टेस्ट',
         stopButton: 'थांबवा'
+      },
+      mediaPage: {
+        header: {
+          title: 'कौटुंबिक आठवणी',
+          description: 'कार्यक्रम आणि महत्त्वाच्या क्षणांमधील कौटुंबिक छायाचित्रांच्या संग्रहातून आठवणी जतन करा'
+        },
+        upload: {
+          title: 'आठवणी सामायिक करा',
+          description: 'कुटुंबाच्या गॅलरीत छायाचित्रे जोडण्यासाठी शीर्षकासह फोटो अपलोड करा.',
+          albumTitle: 'अल्बम शीर्षक',
+          albumTitlePlaceholder: 'उदा. लग्न सोहळा',
+          descriptionLabel: 'वर्णन (ऐच्छिक)',
+          descriptionPlaceholder: 'संक्षिप्त वर्णन किंवा कथा जोडा',
+          uploadInstructions: 'फायली निवडण्यासाठी क्लिक करा किंवा ड्रॅग आणि ड्रॉप करा',
+          uploadLimit: 'एकावेळी {{count}} फोटो अपलोड करू शकता. प्रत्येक फाइलचा आकार {{size}}MB च्या आत असावा.',
+          selectedImages: 'निवडलेले फोटो',
+          clearAll: 'सर्व साफ करा',
+          imageName: 'फोटो {{index}}',
+          uploadButton: 'आठवणी अपलोड करा',
+          uploading: 'अपलोड करत आहे...',
+          preparing: 'तयार करत आहे…',
+          success: 'आपले फोटो गॅलरीमध्ये अपलोड झाले आहेत.',
+          error: 'फोटो अपलोड करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.',
+          loginRequired: 'फोटो अपलोड करण्यासाठी कृपया लॉग इन करा.'
+        },
+        communityUploads: {
+          title: 'नवीन कम्युनिटी अपलोड्स',
+          empty: 'अजून कम्युनिटी अपलोड्स नाहीत. पहिला फोटो तुम्ही सामायिक करा!',
+          photos: '{{count}} {{count, plural, one {फोटो} other {फोटो}}}',
+          morePhotos: '+{{count}} अधिक',
+          uploadedBy: '{{name}} यांनी अपलोड केले'
+        },
+        search: {
+          placeholder: 'अल्बम शीर्षक किंवा कॅप्शनद्वारे शोधा...'
+        },
+        filters: {
+          allTypes: 'सर्व अल्बम',
+          events: 'कार्यक्रम',
+          news: 'बातम्या',
+          community: 'कम्युनिटी',
+          sortLabel: 'क्रम',
+          typeLabel: 'प्रकार',
+          yearLabel: 'वर्ष',
+          categoryLabel: 'श्रेणी',
+          eventTypeLabel: 'कार्यक्रम प्रकार',
+          reset: 'फिल्टर रीसेट करा',
+          yearsAll: 'सर्व वर्षे',
+          categoriesAll: 'सर्व श्रेणी',
+          eventTypesAll: 'सर्व कार्यक्रम प्रकार',
+          sortRecent: 'नवीनतम',
+          sortOldest: 'जुने',
+          sortTitle: 'शीर्षक (अ-ह)',
+          sortPhotos: 'जास्त फोटो'
+        },
+        sort: {
+          recent: 'नवीनतम',
+          oldest: 'जुने',
+          title: 'शीर्षक (अ-ह)',
+          photos: 'जास्त फोटो'
+        },
+        albums: {
+          eventType: 'कार्यक्रम',
+          newsType: 'बातमी',
+          communityType: 'कम्युनिटी',
+          photoCount: '{{count}} {{count, plural, one {फोटो} other {फोटो}}}',
+          unknownUploader: 'अज्ञात'
+        },
+        lightbox: {
+          autoPlay: 'स्वयं-प्लेय',
+          download: 'डाऊनलोड',
+          preparing: 'तयार करत आहे…',
+          counter: '{{current}} / {{total}}',
+          date: '{{date, date, long}}',
+          thumbnailStrip: 'फोटो थंबनेल्स'
+        },
+        emptyState: {
+          title: 'अजून आठवणी नाहीत',
+          noResults: 'आपल्या शोधाशी जुळणारे अल्बम नाहीत. कृपया वेगळा शोध वापरा.',
+          noAlbums: 'कार्यक्रम किंवा बातम्यांचे फोटो अल्बम उपलब्ध नाहीत.'
+        },
+        loading: {
+          title: 'आपल्या आठवणी एकत्र करत आहोत...',
+          subtitle: 'कृपया थोडा वेळ प्रतीक्षा करा'
+        }
       },
       // Content Data - News Articles - मराठी
       newsContent: {
@@ -458,6 +627,7 @@ const resources = {
         signInHere: 'येथे साइन इन करा',
         loading: 'खाते तयार करत आहे...',
         register: 'नोंदणी करा',
+        registrationPendingApproval: 'आपली नोंदणी प्रशासकाद्वारे तपासली जाईल. मंजूर झाल्यावर आपल्याला ईमेलद्वारे माहिती मिळेल.',
         dontHaveAccount: 'खाते नाही?',
         signUpHere: 'येथे साइन अप करा',
         forgotPassword: 'आपला पासवर्ड विसरलात?'

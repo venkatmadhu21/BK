@@ -9,11 +9,11 @@ import CardFamilyTree from './CardFamilyTree';
 import FamilyTreePDFExport from './FamilyTreePDFExport';
 import EnhancedFamilyTree from './EnhancedFamilyTree';
 import ComprehensiveFamilyTree from './ComprehensiveFamilyTree';
-import VisualFamilyTree from './VisualFamilyTree';
 import InteractiveFamilyTree from './InteractiveFamilyTree';
 import ReactD3FamilyTree from './ReactD3FamilyTree';
 import api from '../../utils/api';
 import { transformMemberData, transformMembersData } from '../../utils/memberTransform';
+import { getProfileImageUrl } from '../../utils/profileImages';
 import '../../styles/heritage-background.css';
 
 // Simple recursive component for text-based tree view
@@ -155,18 +155,11 @@ const FamilyTree = () => {
 
   // Define available views based on user role
   const availableViews = isAdmin ? [
-    { key: 'interactive', label: 'Interactive Tree with Relationships' },
     { key: 'reactd3', label: 'React D3 Tree (Couples)' },
-    { key: 'visual', label: 'Visual Tree with Relationships' },
-    { key: 'comprehensive', label: 'All Members & Relationships' },
     { key: 'enhanced', label: 'Enhanced Tree' },
-    { key: 'modern', label: 'Radial Tree' },
     { key: 'card', label: 'Collapsible Tree' },
     { key: 'horizontal', label: 'Horizontal Tree' },
-    { key: 'vertical', label: 'Vertical Tree' },
-    { key: 'text', label: 'Text View' },
-    { key: 'pedigree', label: 'Pedigree Chart' },
-    { key: 'timeline', label: 'Timeline View' }
+    { key: 'text', label: 'Text View' }
   ] : [
     { key: 'reactd3', label: 'Interactive Family Tree' }
   ];
@@ -174,7 +167,7 @@ const FamilyTree = () => {
   // Default view based on role and route
   const getDefaultView = () => {
     if (!isAdmin) return 'reactd3';
-    return serNo ? 'horizontal' : 'comprehensive';
+    return serNo ? 'horizontal' : 'reactd3';
   };
 
   const [viewType, setViewType] = useState(getDefaultView());
@@ -264,6 +257,16 @@ const FamilyTree = () => {
     const normalizedMember = transformMemberData(member);
 
     const memberName = normalizedMember.fullName || 'Unknown';
+    
+    // Build spouse object if exists (preserve full structure for components like GraphicalFamilyTree)
+    const spouseObj = normalizedMember.spouse ? {
+      fullName: normalizedMember.spouse.fullName || 'Unknown Spouse',
+      firstName: normalizedMember.spouse.firstName || '',
+      lastName: normalizedMember.spouse.lastName || '',
+      serNo: normalizedMember.spouse.serNo,
+      gender: normalizedMember.spouse.gender || 'Unknown'
+    } : null;
+
     const node = {
       name: memberName,
       attributes: {
@@ -272,13 +275,15 @@ const FamilyTree = () => {
         vansh: normalizedMember.vansh || '',
         level: normalizedMember.level || 1,
         sonDaughterCount: normalizedMember.sonDaughterCount || 0,
-        spouse: normalizedMember.spouse?.fullName || '',
+        spouse: spouseObj?.fullName || '', // Keep as string for backwards compatibility in attributes
         birthDate: normalizedMember.dateOfBirth || '',
         birthYear: normalizedMember.dateOfBirth ? new Date(normalizedMember.dateOfBirth).getFullYear() : null,
         marriageDate: normalizedMember.dateOfMarriage || '',
-        marriageYear: normalizedMember.dateOfMarriage ? new Date(normalizedMember.dateOfMarriage).getFullYear() : null
+        marriageYear: normalizedMember.dateOfMarriage ? new Date(normalizedMember.dateOfMarriage).getFullYear() : null,
+        profilePicture: getProfileImageUrl(normalizedMember.profileImage, normalizedMember.gender)
       },
-      children: []
+      children: [],
+      spouse: spouseObj // Add spouse as separate property for components that need full object
     };
 
     // Original API: no spouse augmentation, only nested children
@@ -413,11 +418,6 @@ const FamilyTree = () => {
               ))}
             </div>
           </div>
-        )}
-
-        {/* Visual tree view - Tree with relationship connections */}
-        {viewType === 'visual' && (
-          <VisualFamilyTree />
         )}
 
         {/* Note: Comprehensive view is handled above with the complete tree data */}

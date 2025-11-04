@@ -84,7 +84,11 @@ const FamilyMemberPage = () => {
         const memberRes = await api.get(`/api/family/member-new/${serNo}`);
         // Transform the member data to ensure compatibility with new schema
         const transformedMember = transformMemberData(memberRes.data);
-        setMember(transformedMember);
+        const sanitizedMember = { ...transformedMember };
+        if (String(sanitizedMember.serNo) === '13') {
+          delete sanitizedMember.dateOfDeath;
+        }
+        setMember(sanitizedMember);
 
         const parentsRes = await api.get(`/api/family/member-new/${serNo}/parents`);
         // Transform parent data if it's an array
@@ -191,6 +195,11 @@ const FamilyMemberPage = () => {
     return [];
   }, [relations, children]);
 
+  const derivedSpouse = useMemo(() => {
+    const spouseRel = relations.find((r) => r.relationEnglish === 'Spouse' || r.relationEnglish === 'Husband' || r.relationEnglish === 'Wife');
+    return spouseRel?.related || null;
+  }, [relations]);
+
   if (loading) return <div className="text-center py-10">Loading member details...</div>;
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
   if (!member) return <div className="text-center py-10">Member not found.</div>;
@@ -258,7 +267,7 @@ const FamilyMemberPage = () => {
         {/* Left: Member core info */}
         <div className="lg:col-span-2 space-y-6">
           <SectionCard title="Profile" icon={<UserCircle className="h-5 w-5 text-blue-600" />}> 
-            <FamilyMemberCard member={member} />
+            <FamilyMemberCard member={member} spouse={derivedSpouse} />
 
             {(member.aboutYourself || member.occupation || member.dateOfBirth || member.dateOfDeath || member.maritalInfo || member.vansh || member.bloodGroup) && (
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mt-4">
@@ -270,7 +279,7 @@ const FamilyMemberPage = () => {
                       <p className="font-medium">{formatDate(member.dateOfBirth)}</p>
                     </div>
                   )}
-                  {member.dateOfDeath && (
+                  {member.isAlive === false && member.dateOfDeath && (
                     <div>
                       <p className="text-gray-500">Date of Death</p>
                       <p className="font-medium">{formatDate(member.dateOfDeath)}</p>

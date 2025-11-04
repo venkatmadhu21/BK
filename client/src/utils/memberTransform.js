@@ -8,6 +8,14 @@ export const transformMemberData = (member) => {
 
   // Check if member already has flat structure (backwards compatibility)
   if (member.firstName && !member.personalDetails?.firstName) {
+    const biography = member.Bio || member.bio || member.aboutYourself || '';
+    if (biography && (!member.Bio || !member.bio)) {
+      return {
+        ...member,
+        Bio: member.Bio || biography,
+        bio: member.bio || biography,
+      };
+    }
     return member;
   }
 
@@ -51,6 +59,8 @@ export const transformMemberData = (member) => {
     aboutYourself: personal.aboutYourself || '',
     qualifications: personal.qualifications || '',
     profession: personal.profession || '',
+    Bio: personal.aboutYourself || member.Bio || member.bio || '',
+    bio: personal.aboutYourself || member.Bio || member.bio || '',
     
     profileImage: personal.profileImage || null,
     

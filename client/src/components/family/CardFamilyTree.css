@@ -25,11 +25,18 @@
 }
 
 .card-tree-node.male {
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #60a5fa;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.6), rgba(96, 165, 250, 0.2));
 }
 
 .card-tree-node.female {
-  border-left: 4px solid #eb2f96;
+  border-left: 4px solid #f472b6;
+  background: linear-gradient(135deg, rgba(255, 228, 240, 0.6), rgba(244, 114, 182, 0.2));
+}
+
+.card-tree-node.unknown {
+  border-left: 4px solid #d1d5db;
+  background: linear-gradient(135deg, rgba(243, 244, 246, 0.6), rgba(209, 213, 219, 0.2));
 }
 
 .card-node-avatar {

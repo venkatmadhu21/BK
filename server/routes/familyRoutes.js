@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { addFamilyMember, getAllFamilyMembers, searchParents } = require("../models/familyController");
 const { upload, parseNestedFields } = require("../middleware/upload");
 const Members = require("../models/mem");
+const Relationship = require("../models/Relationship");
 const {
   buildMembersIndex,
   buildRelationRulesMap,
@@ -373,6 +374,21 @@ router.get("/tree-fmem/:serNo", async (req, res) => {
   } catch (error) {
     console.error('Error building family tree:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   GET api/family/all-relationships
+// @desc    Get all relationships
+// @access  Public
+router.get('/all-relationships', async (req, res) => {
+  try {
+    const relationships = await Relationship.find()
+      .sort({ fromSerNo: 1, toSerNo: 1 });
+
+    res.json(relationships);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
   }
 });
 

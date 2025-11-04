@@ -121,7 +121,7 @@ Those going to Ambajogai for darshan of Shri Yogeshwari Devi or for religious ce
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50/30 to-orange-50 relative overflow-hidden">
       {/* Enhanced Background Decorative Elements (exact Vyadeshwar style) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-amber-300/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-amber-200/20 to-amber-300/15 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-amber-200/20 to-orange-300/15 rounded-full blur-3xl"></div>
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-orange-100/30 to-amber-100/20 rounded-full blur-2xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-l from-amber-200/25 to-orange-200/20 rounded-full blur-xl"></div>

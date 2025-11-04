@@ -49,6 +49,7 @@ const FamilyTreePDFExport = ({ treeData, viewType, rootMemberName }) => {
       case 'card': return 'card-tree-container';
       case 'horizontal': return 'horizontal-tree-container';
       case 'vertical': return 'vertical-tree-container';
+      case 'reactd3': return 'reactd3-tree-container';
       case 'text': return 'text-tree-container';
       default: return 'tree-container';
     }

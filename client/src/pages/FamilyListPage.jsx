@@ -13,56 +13,143 @@ const FamilyListPage = () => {
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
   const [selectedVansh, setSelectedVansh] = useState('');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards', 'compact', 'table'
+  const [viewMode, setViewMode] = useState('cards');
   const [levels, setLevels] = useState([]);
   const [vanshes, setVanshes] = useState([]);
   const [stats, setStats] = useState({});
+  const [memberLookup, setMemberLookup] = useState({});
+
+  const getMemberDisplayName = (member) => {
+    if (!member) return '';
+    const name = member.fullName || `${member.firstName || ''} ${member.middleName || ''} ${member.lastName || ''}`;
+    return name.replace(/\s+/g, ' ').trim();
+  };
+
+  const buildLookup = (list, base = {}) => {
+    const lookup = { ...base };
+    list.forEach((member) => {
+      if (member?.serNo !== undefined && member?.serNo !== null) {
+        lookup[String(member.serNo)] = member;
+      }
+    });
+    return lookup;
+  };
+
+  const enrichMembers = (list, lookupSource = {}) => {
+    const combinedLookup = buildLookup(list, lookupSource);
+    return list.map((member) => {
+      const spouseData = member.spouseSerNo ? combinedLookup[String(member.spouseSerNo)] : undefined;
+      const resolvedSpouse = spouseData || (member.spouse && typeof member.spouse === 'object' ? member.spouse : undefined);
+      const fatherData = member.fatherSerNo ? combinedLookup[String(member.fatherSerNo)] : undefined;
+      const resolvedFather = fatherData || (member.father && typeof member.father === 'object' ? member.father : undefined);
+      const motherData = member.motherSerNo ? combinedLookup[String(member.motherSerNo)] : undefined;
+      const resolvedMother = motherData || (member.mother && typeof member.mother === 'object' ? member.mother : undefined);
+
+      const childrenFromObjects = Array.isArray(member.children) ? member.children : [];
+      const childrenFromSerNos = Array.isArray(member.childrenSerNos) ? member.childrenSerNos : [];
+
+      const enrichedChildrenObjects = childrenFromObjects.map((child) => {
+        if (typeof child === 'object' && child !== null) {
+          const reference = child.serNo ? combinedLookup[String(child.serNo)] || child : child;
+          return {
+            serNo: reference?.serNo,
+            fullName: getMemberDisplayName(reference || child)
+          };
+        }
+        const reference = combinedLookup[String(child)];
+        return reference
+          ? {
+              serNo: reference.serNo,
+              fullName: getMemberDisplayName(reference)
+            }
+          : {
+              serNo: child
+            };
+      });
+
+      const enrichedChildrenFromSerNos = childrenFromSerNos
+        .map((serNo) => combinedLookup[String(serNo)])
+        .filter(Boolean)
+        .map((child) => ({
+          serNo: child.serNo,
+          fullName: getMemberDisplayName(child)
+        }));
+
+      const children = enrichedChildrenObjects.length > 0 ? enrichedChildrenObjects : enrichedChildrenFromSerNos;
+      const fatherSerNo = resolvedFather?.serNo ?? member.father?.serNo ?? member.fatherSerNo;
+      const fatherFullName = resolvedFather ? getMemberDisplayName(resolvedFather) : member.father?.fullName || member.fatherName;
+      const motherSerNo = resolvedMother?.serNo ?? member.mother?.serNo ?? member.motherSerNo;
+      const motherFullName = resolvedMother ? getMemberDisplayName(resolvedMother) : member.mother?.fullName || member.motherName;
+
+      return {
+        ...member,
+        spouse: resolvedSpouse
+          ? {
+              serNo: resolvedSpouse.serNo ?? member.spouseSerNo,
+              fullName: getMemberDisplayName(resolvedSpouse)
+            }
+          : undefined,
+        father: fatherSerNo || fatherFullName
+          ? {
+              ...(typeof member.father === 'object' && member.father !== null ? member.father : {}),
+              serNo: fatherSerNo,
+              fullName: fatherFullName || (typeof member.father === 'object' && member.father !== null ? member.father.fullName : member.fatherName)
+            }
+          : undefined,
+        mother: motherSerNo || motherFullName
+          ? {
+              ...(typeof member.mother === 'object' && member.mother !== null ? member.mother : {}),
+              serNo: motherSerNo,
+              fullName: motherFullName || (typeof member.mother === 'object' && member.mother !== null ? member.mother.fullName : member.motherName)
+            }
+          : undefined,
+        children: children.length > 0 ? children : member.children
+      };
+    });
+  };
 
   useEffect(() => {
     const fetchFamilyMembers = async () => {
       try {
         setLoading(true);
-        // Fetch from members collection endpoint
         const res = await api.get('/api/family/members');
-        
-        // Get data from response (backend now returns flat, transformed data)
-        const membersData = Array.isArray(res.data) ? res.data : (res.data.data || []);
-        
-        // Ensure gender is capitalized for display
-        const normalizedMembers = membersData.map(member => ({
+        const membersData = Array.isArray(res.data) ? res.data : res.data.data || [];
+
+        const normalizedMembers = membersData.map((member) => ({
           ...member,
           gender: member.gender ? member.gender.charAt(0).toUpperCase() + member.gender.slice(1) : ''
         }));
-        
-        // Extract unique levels and vanshes
-        const uniqueLevels = [...new Set(normalizedMembers.map(member => member.level))].filter(Boolean).sort((a, b) => a - b);
-        const uniqueVanshes = [...new Set(normalizedMembers.map(member => member.vansh).filter(Boolean))].sort();
-        
-        // Calculate statistics
+
+        const uniqueLevels = [...new Set(normalizedMembers.map((member) => member.level))].filter(Boolean).sort((a, b) => a - b);
+        const uniqueVanshes = [...new Set(normalizedMembers.map((member) => member.vansh).filter(Boolean))].sort();
+
         const statistics = {
           total: normalizedMembers.length,
-          male: normalizedMembers.filter(m => m.gender?.toLowerCase() === 'male').length,
-          female: normalizedMembers.filter(m => m.gender?.toLowerCase() === 'female').length,
-          withSpouse: normalizedMembers.filter(m => m.spouseSerNo).length,
-          withChildren: normalizedMembers.filter(m => m.childrenSerNos && m.childrenSerNos.length > 0).length,
+          male: normalizedMembers.filter((m) => m.gender?.toLowerCase() === 'male').length,
+          female: normalizedMembers.filter((m) => m.gender?.toLowerCase() === 'female').length,
+          withSpouse: normalizedMembers.filter((m) => m.spouseSerNo).length,
+          withChildren: normalizedMembers.filter((m) => m.childrenSerNos && m.childrenSerNos.length > 0).length,
           totalChildren: normalizedMembers.reduce((sum, m) => sum + (m.childrenSerNos?.length || 0), 0),
           byLevel: uniqueLevels.reduce((acc, level) => {
-            acc[level] = normalizedMembers.filter(m => m.level === level).length;
+            acc[level] = normalizedMembers.filter((m) => m.level === level).length;
             return acc;
           }, {}),
           byVansh: uniqueVanshes.reduce((acc, vansh) => {
-            acc[vansh] = normalizedMembers.filter(m => m.vansh === vansh).length;
+            acc[vansh] = normalizedMembers.filter((m) => m.vansh === vansh).length;
             return acc;
           }, {})
         };
-        
-        // Set a minimum loading time of 1 second for better UX
+
+        const enrichedMembers = enrichMembers(normalizedMembers);
+        const lookup = buildLookup(enrichedMembers);
+
         setTimeout(() => {
-          setMembers(normalizedMembers);
-          setFilteredMembers(normalizedMembers);
+          setMembers(enrichedMembers);
+          setFilteredMembers(enrichedMembers);
           setLevels(uniqueLevels);
           setVanshes(uniqueVanshes);
           setStats(statistics);
+          setMemberLookup(lookup);
           setLoading(false);
         }, 1000);
       } catch (err) {
@@ -107,24 +194,24 @@ const FamilyListPage = () => {
 
   const handleLevelChange = async (level) => {
     setSelectedLevel(level);
-    
+
     if (level) {
       try {
         setLoading(true);
         const res = await api.get(`/api/family/members?level=${level}`);
-        
-        // Get data from response
-        const membersData = Array.isArray(res.data) ? res.data : (res.data.data || []);
-        
-        // Ensure gender is capitalized for display
-        const normalizedMembers = membersData.map(member => ({
+        const membersData = Array.isArray(res.data) ? res.data : res.data.data || [];
+
+        const normalizedMembers = membersData.map((member) => ({
           ...member,
           gender: member.gender ? member.gender.charAt(0).toUpperCase() + member.gender.slice(1) : ''
         }));
-        
-        // Set a minimum loading time of 1 second for better UX
+
+        const enrichedLevelMembers = enrichMembers(normalizedMembers, memberLookup);
+        const updatedLookup = buildLookup(enrichedLevelMembers, memberLookup);
+
         setTimeout(() => {
-          setFilteredMembers(normalizedMembers);
+          setFilteredMembers(enrichedLevelMembers);
+          setMemberLookup(updatedLookup);
           setLoading(false);
         }, 1000);
       } catch (err) {
@@ -136,7 +223,6 @@ const FamilyListPage = () => {
       }
     } else {
       setLoading(true);
-      // Set a minimum loading time of 1 second for better UX
       setTimeout(() => {
         setFilteredMembers(members);
         setLoading(false);
@@ -165,26 +251,26 @@ const FamilyListPage = () => {
             <GitBranch className="mr-2" size={16} />
             View Family Tree
           </Link>
-          <Link 
+          {/* <Link 
             to="/raw-data" 
             className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors"
           >
             <BarChart3 className="mr-2" size={16} />
             Raw Data
-          </Link>
+          </Link> */}
         </div>
       </div>
 
       {/* Statistics Cards */}
       {!loading && stats.total && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-blue-600 text-sm font-medium">Total Members</p>
-            <p className="text-2xl font-bold text-blue-800">{stats.total}</p>
+          <div className="bg-green-50 p-4 rounded-lg border border-blue-200">
+            <p className="text-green-600 text-sm font-medium">Total Members</p>
+            <p className="text-2xl font-bold text-green-800">{stats.total}</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <p className="text-green-600 text-sm font-medium">Male</p>
-            <p className="text-2xl font-bold text-green-800">{stats.male}</p>
+          <div className="bg-blue-50 p-4 rounded-lg border border-green-200">
+            <p className="text-blue-600 text-sm font-medium">Male</p>
+            <p className="text-2xl font-bold text-blue-800">{stats.male}</p>
           </div>
           <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
             <p className="text-pink-600 text-sm font-medium">Female</p>

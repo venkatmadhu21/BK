@@ -3,10 +3,19 @@ import { Link } from 'react-router-dom';
 import { User, Users, UserCircle } from 'lucide-react';
 import { getProfileImageUrl } from '../../utils/profileImages';
 
-const FamilyMemberCard = ({ member }) => {
+const FamilyMemberCard = ({ member, spouse = null }) => {
   if (!member) return null;
 
   const isMale = () => member?.gender?.toLowerCase() === 'male';
+  
+  // Get spouse name with fallback
+  const getSpouseName = () => {
+    if (spouse?.fullName) return spouse.fullName;
+    if (spouse?.firstName || spouse?.lastName) {
+      return `${spouse?.firstName || ''} ${spouse?.lastName || ''}`.trim();
+    }
+    return 'Spouse';
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
@@ -44,13 +53,13 @@ const FamilyMemberCard = ({ member }) => {
         </div>
       </div>
 
-      {member.spouseSerNo && (
+      {(member.spouseSerNo || spouse) && (
         <div className="mb-4 p-3 bg-gray-50 rounded">
           <p className="text-sm text-gray-500 mb-1">Spouse</p>
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mr-3 border border-gray-200">
               <img
-                src={getProfileImageUrl(null, isMale() ? 'Female' : 'Male')}
+                src={getProfileImageUrl(spouse?.profileImage, isMale() ? 'Female' : 'Male')}
                 alt="Spouse"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -60,10 +69,10 @@ const FamilyMemberCard = ({ member }) => {
               />
             </div>
             <Link 
-              to={`/family/member/${member.spouseSerNo}`}
+              to={`/family/member/${spouse?.serNo || member.spouseSerNo}`}
               className="text-blue-600 hover:text-blue-800"
             >
-              Spouse <span className="text-xs text-gray-500">#{member.spouseSerNo}</span>
+              {getSpouseName()} <span className="text-xs text-gray-500">#{spouse?.serNo || member.spouseSerNo}</span>
             </Link>
           </div>
         </div>

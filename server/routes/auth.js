@@ -9,6 +9,45 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+const titleCase = (value) => {
+  if (!value || typeof value !== 'string') return '';
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const extractLegacyNames = (legacy) => {
+  if (!legacy) return { firstName: 'User', lastName: '' };
+  const first =
+    titleCase(legacy.firstName) ||
+    titleCase(legacy.firstname) ||
+    titleCase(legacy.first_name) ||
+    titleCase(legacy.name);
+  const last =
+    titleCase(legacy.lastName) ||
+    titleCase(legacy.lastname) ||
+    titleCase(legacy.last_name);
+  if (first || last) {
+    return { firstName: first || 'User', lastName: last || '' };
+  }
+  const emailPrefix = typeof legacy.email === 'string' ? legacy.email.split('@')[0] : '';
+  if (emailPrefix) {
+    const formatted = titleCase(emailPrefix.replace(/[._-]+/g, ' '));
+    if (formatted) {
+      const parts = formatted.split(' ');
+      return { firstName: parts[0] || 'User', lastName: parts.slice(1).join(' ') };
+    }
+  }
+  const username = titleCase(legacy.username);
+  if (username) {
+    const parts = username.split(' ');
+    return { firstName: parts[0] || 'User', lastName: parts.slice(1).join(' ') };
+  }
+  return { firstName: 'User', lastName: '' };
+};
+
 // @route   POST api/auth/register
 // @desc    Register user
 // @access  Public
@@ -281,14 +320,18 @@ router.post('/login', [
     }
 
     // Issue token with minimal profile for legacy users
+    const legacyNames = extractLegacyNames(legacy);
     const payload = {
       user: {
         id: `legacy:${legacy._id}`,
         email: legacy.email,
+        username: legacy.username || undefined,
         isAdmin: false,
         role: 'user',
         source: 'legacy',
-        serNo: legacy.serNo || legacy.serno || undefined
+        serNo: legacy.serNo || legacy.serno || undefined,
+        firstName: legacyNames.firstName,
+        lastName: legacyNames.lastName
       }
     };
 
@@ -303,9 +346,10 @@ router.post('/login', [
           token,
           user: {
             id: `legacy:${legacy._id}`,
-            firstName: 'User',
-            lastName: '',
+            firstName: legacyNames.firstName,
+            lastName: legacyNames.lastName,
             email: legacy.email,
+            username: legacy.username || undefined,
             isAdmin: false,
             role: 'user',
             profilePicture: ''
@@ -325,13 +369,28 @@ router.post('/login', [
 // @access  Private
 router.get('/user', auth, async (req, res) => {
   try {
-    // If token came from legacy source, return minimal profile
     if (req.user?.source === 'legacy') {
+      const legacyId = typeof req.user.id === 'string' && req.user.id.includes(':') ? req.user.id.split(':')[1] : null;
+      let legacyRecord = null;
+      if (req.user.email) {
+        legacyRecord = await LegacyLogin.findOne({ email: req.user.email.toLowerCase() });
+        if (!legacyRecord) {
+          legacyRecord = await LegacyLoginCap.findOne({ email: req.user.email.toLowerCase() });
+        }
+      }
+      if (!legacyRecord && legacyId) {
+        legacyRecord = await LegacyLogin.findById(legacyId);
+        if (!legacyRecord) {
+          legacyRecord = await LegacyLoginCap.findById(legacyId);
+        }
+      }
+      const legacyNames = extractLegacyNames(legacyRecord || req.user);
       return res.json({
         id: req.user.id,
-        firstName: 'User',
-        lastName: '',
+        firstName: legacyNames.firstName,
+        lastName: legacyNames.lastName,
         email: req.user.email,
+        username: legacyRecord?.username || req.user.username,
         isAdmin: false,
         role: 'user',
         profilePicture: ''

@@ -6,7 +6,6 @@ import Modal from '../components/common/Modal';
 import SearchFilterBar from '../components/admin/SearchFilterBar';
 import api from '../utils/api';
 import HierarchyFormSection from '../components/admin/HierarchyFormSection';
-import JsonPreview from '../components/admin/JsonPreview';
 import { createHierarchyFormDefaults, prepareHierarchyFormPayload } from '../utils/hierarchyFormUtils';
 import '../styles/heritage-background.css';
 
@@ -1493,51 +1492,227 @@ const AdminDashboard = () => {
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* Dynamic form fields based on modalType */}
           {modalType === 'users' && (
-            <>
-              <input
-                type="text"
-                placeholder="First Name"
-                value={formData.firstName || ''}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={formData.lastName || ''}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email || ''}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              {!editingItem && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">First Name</label>
+                  <input
+                    type="text"
+                    value={formData.firstName || ''}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.lastName || ''}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                  <input
+                    type="text"
+                    value={formData.phone || ''}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={formData.dateOfBirth || ''}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Gender</label>
+                  <select
+                    value={formData.gender || 'Male'}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Marital Status</label>
+                  <select
+                    value={formData.maritalStatus || 'Single'}
+                    onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Divorced">Divorced</option>
+                    <option value="Widowed">Widowed</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Role</label>
+                  <select
+                    value={formData.role || 'user'}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="user">User</option>
+                    <option value="dataentry">Data Entry</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Occupation</label>
+                  <input
+                    type="text"
+                    value={formData.occupation || ''}
+                    onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Profile Picture URL</label>
+                  <input
+                    type="text"
+                    value={formData.profilePicture || ''}
+                    onChange={(e) => setFormData({ ...formData, profilePicture: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Family ID</label>
+                  <input
+                    type="text"
+                    value={formData.familyId || ''}
+                    onChange={(e) => setFormData({ ...formData, familyId: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Password</label>
+                  <input
+                    type="password"
+                    value={formData.password || ''}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    placeholder={editingItem ? 'New Password (optional)' : 'Password'}
+                    required={!editingItem}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-gray-800">Address</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Street</label>
+                    <input
+                      type="text"
+                      value={formData.address?.street || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        address: {
+                          ...(formData.address || {}),
+                          street: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">City</label>
+                    <input
+                      type="text"
+                      value={formData.address?.city || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        address: {
+                          ...(formData.address || {}),
+                          city: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">State</label>
+                    <input
+                      type="text"
+                      value={formData.address?.state || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        address: {
+                          ...(formData.address || {}),
+                          state: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Pincode</label>
+                    <input
+                      type="text"
+                      value={formData.address?.pincode || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        address: {
+                          ...(formData.address || {}),
+                          pincode: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Country</label>
+                    <input
+                      type="text"
+                      value={formData.address?.country || 'India'}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        address: {
+                          ...(formData.address || {}),
+                          country: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
                 <input
-                  type="password"
-                  placeholder="Password"
-                  value={formData.password || ''}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-lg"
-                  required
+                  type="checkbox"
+                  checked={Boolean(formData.isActive)}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded"
                 />
-              )}
-              <select
-                value={formData.role || 'user'}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-              >
-                <option value="user">User</option>
-                <option value="dataentry">Data Entry</option>
-                <option value="admin">Admin</option>
-              </select>
-            </>
+                Active
+              </label>
+            </div>
           )}
 
           {modalType === 'family-members' && (
@@ -1632,69 +1807,396 @@ const AdminDashboard = () => {
           )}
 
           {modalType === 'news' && (
-            <>
-              <input
-                type="text"
-                placeholder="Title"
-                value={formData.title || ''}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              <textarea
-                placeholder="Content"
-                value={formData.content || ''}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                rows={4}
-                required
-              />
-              <input
-                type="date"
-                placeholder="Date"
-                value={formData.date || ''}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              {/* Add more fields as needed */}
-            </>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Title</label>
+                <input
+                  type="text"
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Summary</label>
+                <textarea
+                  value={formData.summary || ''}
+                  onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Content</label>
+                <textarea
+                  value={formData.content || ''}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={6}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Category</label>
+                  <select
+                    value={formData.category || 'General'}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="General">General</option>
+                    <option value="Announcement">Announcement</option>
+                    <option value="Event">Event</option>
+                    <option value="Birthday">Birthday</option>
+                    <option value="Achievement">Achievement</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Publish Date</label>
+                  <input
+                    type="date"
+                    value={formData.publishDate || ''}
+                    onChange={(e) => setFormData({ ...formData, publishDate: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <select
+                    value={formData.priority || 'Medium'}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={formData.tags || ''}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Author ID</label>
+                <input
+                  type="text"
+                  value={formData.author || ''}
+                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.isPublished)}
+                  onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded"
+                />
+                Published
+              </label>
+            </div>
           )}
 
           {modalType === 'events' && (
-            <>
-              <input
-                type="text"
-                placeholder="Title"
-                value={formData.title || ''}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="date"
-                placeholder="Date"
-                value={formData.date || ''}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Location"
-                value={formData.location || ''}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-              />
-              <textarea
-                placeholder="Description"
-                value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-3 border border-gray-300"
-                rows={4}
-              />
-              {/* Add more fields as needed */}
-            </>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Title</label>
+                <input
+                  type="text"
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  rows={5}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Event Type</label>
+                  <select
+                    value={formData.eventType || 'Other'}
+                    onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="Wedding">Wedding</option>
+                    <option value="Birthday">Birthday</option>
+                    <option value="Festival">Festival</option>
+                    <option value="Gathering">Gathering</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <select
+                    value={formData.status || 'Upcoming'}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <select
+                    value={formData.priority || 'Medium'}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Max Attendees</label>
+                  <input
+                    type="number"
+                    value={formData.maxAttendees ?? ''}
+                    onChange={(e) => setFormData({ ...formData, maxAttendees: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Start Date</label>
+                  <input
+                    type="date"
+                    value={formData.startDate || ''}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">End Date</label>
+                  <input
+                    type="date"
+                    value={formData.endDate || ''}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Start Time</label>
+                  <input
+                    type="time"
+                    value={formData.startTime || ''}
+                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">End Time</label>
+                  <input
+                    type="time"
+                    value={formData.endTime || ''}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Organizer ID</label>
+                  <input
+                    type="text"
+                    value={formData.organizer || ''}
+                    onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Co-organizer IDs (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={formData.coOrganizers || ''}
+                    onChange={(e) => setFormData({ ...formData, coOrganizers: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.isPublic)}
+                  onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded"
+                />
+                Public Event
+              </label>
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-gray-800">Venue</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Venue Name</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.name || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          name: e.target.value
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Street</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.address?.street || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          address: {
+                            ...(formData.venue?.address || {}),
+                            street: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">City</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.address?.city || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          address: {
+                            ...(formData.venue?.address || {}),
+                            city: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">State</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.address?.state || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          address: {
+                            ...(formData.venue?.address || {}),
+                            state: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Pincode</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.address?.pincode || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          address: {
+                            ...(formData.venue?.address || {}),
+                            pincode: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Country</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.address?.country || 'India'}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          address: {
+                            ...(formData.venue?.address || {}),
+                            country: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Latitude</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.coordinates?.latitude ?? ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          coordinates: {
+                            ...(formData.venue?.coordinates || {}),
+                            latitude: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Longitude</label>
+                    <input
+                      type="text"
+                      value={formData.venue?.coordinates?.longitude ?? ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        venue: {
+                          ...(formData.venue || {}),
+                          coordinates: {
+                            ...(formData.venue?.coordinates || {}),
+                            longitude: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {modalType === 'relationships' && (
@@ -1783,8 +2285,6 @@ const AdminDashboard = () => {
                 formData={formData}
                 onChange={(updatedData) => setFormData(updatedData)}
               />
-
-              <JsonPreview title={modalTitle} data={formData} />
             </div>
           )}
 

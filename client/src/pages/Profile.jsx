@@ -21,6 +21,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -63,9 +64,11 @@ const Profile = () => {
             country: userData?.address?.country || 'India'
           }
         });
+        setProfileError('');
       } catch (error) {
         console.error('Failed to fetch profile data:', error);
-        // Fallback to user from context if API fails
+        const message = error.response?.data?.message || 'Failed to fetch profile';
+        setProfileError(message);
         if (user) {
           setFormData({
             firstName: user?.firstName || '',
@@ -99,6 +102,8 @@ const Profile = () => {
     confirmPassword: ''
   });
 
+  const legacyRestricted = !!(profileError && /legacy|not available|not supported/i.test(profileError));
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name.includes('.')) {
@@ -129,8 +134,8 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
+      setProfileError('');
       const payload = { ...formData };
-      // Ensure nested address object exists
       if (!payload.address) payload.address = {};
       const res = await api.put('/api/users/profile', payload);
       setFormData(prev => ({ ...prev, ...res.data }));
@@ -138,6 +143,8 @@ const Profile = () => {
     } catch (err) {
       console.error('Failed to save profile:', err.response?.data || err.message);
       const msg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Failed to save profile';
+      setProfileError(msg);
+      setIsEditing(false);
       alert(msg);
     }
   };
@@ -153,6 +160,7 @@ const Profile = () => {
     }
     
     try {
+      setProfileError('');
       await api.put('/api/users/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
@@ -163,6 +171,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Failed to update password:', error);
       const message = error.response?.data?.message || 'Failed to update password';
+      setProfileError(message);
       alert(message);
     }
   };
@@ -222,6 +231,11 @@ const Profile = () => {
       
       {!loading && (
         <>
+      {profileError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          <p className="text-sm font-medium">{profileError}</p>
+        </div>
+      )}
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 to-orange-500/90" />
@@ -242,14 +256,24 @@ const Profile = () => {
               {!isEditing ? (
                 <>
                   <button
-                    onClick={() => setShowPasswordModal(true)}
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white/15 text-white hover:bg-white/20 transition-colors"
+                    onClick={() => {
+                      if (!legacyRestricted) {
+                        setShowPasswordModal(true);
+                      }
+                    }}
+                    disabled={legacyRestricted}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white/15 text-white hover:bg-white/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Lock size={18} className="mr-2" /> Change Password
                   </button>
                   <button
-                    onClick={() => setIsEditing(true)}
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-orange-700 hover:bg-orange-50 transition-colors"
+                    onClick={() => {
+                      if (!legacyRestricted) {
+                        setIsEditing(true);
+                      }
+                    }}
+                    disabled={legacyRestricted}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-orange-700 hover:bg-orange-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Edit size={18} className="mr-2" /> Edit Profile
                   </button>

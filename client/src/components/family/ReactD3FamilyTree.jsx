@@ -122,13 +122,47 @@ const NODE_CARD_WIDTH = 480; // total width for couple node
 const NODE_CARD_HEIGHT = 150;
 const COUPLE_GAP = 12;
 
+const normalizeGender = (value) => {
+  const normalized = (value || '').toString().trim().toLowerCase();
+  if (['male', 'm'].includes(normalized)) return 'male';
+  if (['female', 'f'].includes(normalized)) return 'female';
+  return 'unknown';
+};
+
+const genderStyles = {
+  male: {
+    cardColor: '#60a5fa',
+    bgColor: '#e0f2fe',
+  },
+  female: {
+    cardColor: '#f472b6',
+    bgColor: '#fce7f3',
+  },
+  unknown: {
+    cardColor: '#9ca3af',
+    bgColor: '#f3f4f6',
+  },
+};
+
+const getPhotoFallback = ({ photo, gender, serNo }) => {
+  if (photo) return photo;
+  const genderClass = gender === 'female' ? 'female' : gender === 'male' ? 'male' : 'unknown';
+  const serialNumber = Number(serNo) || 0;
+  const fallbackIndex = (serialNumber % 8) + 1;
+  if (genderClass === 'unknown') {
+    return `/images/profiles/male${fallbackIndex}.jpg`;
+  }
+  return `/images/profiles/${genderClass}${fallbackIndex}.jpg`;
+};
+
 function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, isExpanded, onToggleExpand }) {
-	  const isMale = gender === 'Male';
-	  const cardColor = isMale ? '#91d5ff' : '#ffadd2';
-	  const bgColor = isMale ? '#e6f7ff' : '#fff0f6';
+  const genderClass = normalizeGender(gender);
+  const { cardColor, bgColor } = genderStyles[genderClass];
+  const displayPhoto = getPhotoFallback({ photo, gender: genderClass, serNo });
+  const displayName = name || 'Unknown';
   return (
     <div
-      className="person-card"
+      className={`person-card ${genderClass}`}
       style={{
         width: NODE_CARD_WIDTH / 2 - COUPLE_GAP / 2,
         height: NODE_CARD_HEIGHT,
@@ -219,7 +253,7 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           width: 60,
           height: 60,
           borderRadius: '50%',
-          background: photo ? `url(${photo})` : `linear-gradient(135deg, ${cardColor} 0%, ${cardColor}dd 100%)`,
+          background: `url(${displayPhoto})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           flex: '0 0 auto',
@@ -234,7 +268,7 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           transition: 'all 0.3s ease',
         }}
       >
-        {!photo && name.charAt(0).toUpperCase()}
+        {!photo && displayName.charAt(0).toUpperCase()}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 1 }}>
@@ -275,7 +309,7 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           width: 'fit-content',
           border: `1px solid ${cardColor}40`
         }}>
-          {gender || 'Unknown'}
+          {genderClass === 'unknown' ? 'Unknown' : genderClass.charAt(0).toUpperCase() + genderClass.slice(1)}
         </div>
       </div>
     </div>
