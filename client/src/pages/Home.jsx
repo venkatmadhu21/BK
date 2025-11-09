@@ -13,6 +13,21 @@ import shivvImage from '../assets/images/shivv.webp';
 import deviImage from '../assets/images/devi.png';
 
 
+const TYPEWRITER_TEXTS = ['BalKrishna Nivas', 'बाळकृष्ण निवास'];
+
+const segmentText = (() => {
+  let segmenter;
+  return (text) => {
+    if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+      if (!segmenter) {
+        segmenter = new Intl.Segmenter('mr', { granularity: 'grapheme' });
+      }
+      return Array.from(segmenter.segment(text), (segment) => segment.segment);
+    }
+    return Array.from(text);
+  };
+})();
+
 const Home = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -20,8 +35,10 @@ const Home = () => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [segmentCount, setSegmentCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const isMarathi = TYPEWRITER_TEXTS[currentIndex] === 'बाळकृष्ण निवास';
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [latestNews, setLatestNews] = useState([]);
@@ -30,33 +47,34 @@ const Home = () => {
 
   
   useEffect(() => {
-    const texts = ['BalKrishna Nivas', 'बाळकृष्ण निवास'];
     const typeSpeed = isDeleting ? 100 : 150;
-    const currentText = texts[currentIndex];
-    
+    const currentSegments = segmentText(TYPEWRITER_TEXTS[currentIndex]);
+
     const timeout = setTimeout(() => {
       if (!isDeleting) {
-        // Typing
-        if (displayText.length < currentText.length) {
-          setDisplayText(currentText.substring(0, displayText.length + 1));
+        if (segmentCount < currentSegments.length) {
+          const nextCount = segmentCount + 1;
+          setSegmentCount(nextCount);
+          setDisplayText(currentSegments.slice(0, nextCount).join(''));
         } else {
-          // Finished typing, wait then start deleting
           setTimeout(() => setIsDeleting(true), 1000);
         }
       } else {
-        // Deleting
-        if (displayText.length > 0) {
-          setDisplayText(currentText.substring(0, displayText.length - 1));
+        if (segmentCount > 0) {
+          const nextCount = segmentCount - 1;
+          setSegmentCount(nextCount);
+          setDisplayText(currentSegments.slice(0, nextCount).join(''));
         } else {
-          // Finished deleting, move to next text
+          setDisplayText('');
+          setSegmentCount(0);
           setIsDeleting(false);
-          setCurrentIndex((prev) => (prev + 1) % texts.length);
+          setCurrentIndex((prev) => (prev + 1) % TYPEWRITER_TEXTS.length);
         }
       }
-    }, typeSpeed);
-    
+    }, typeSpeed + (TYPEWRITER_TEXTS[currentIndex] === 'बाळकृष्ण निवास' ? 50 : 0));
+
     return () => clearTimeout(timeout);
-  }, [displayText, currentIndex, isDeleting]);
+  }, [currentIndex, isDeleting, segmentCount]);
   
   // Cursor blinking effect
   useEffect(() => {
@@ -228,9 +246,9 @@ const Home = () => {
         {/* Hero Title Section */}
         <div className={`relative z-10 text-center py-4 xs:py-6 sm:py-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8">
-            <div className="h-12 xs:h-16 sm:h-20 lg:h-24 flex items-center justify-center mb-2 xs:mb-4">
-              <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold text-orange-600 tracking-tight min-h-[1.2em] flex items-center justify-center relative glow-effect">
-                <span className="font-inter tracking-tight relative bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 bg-clip-text text-transparent">
+            <div className={`flex items-center justify-center mb-2 xs:mb-4 ${isMarathi ? 'py-4 xs:py-6' : 'py-1 xs:py-2'}`}>
+              <h1 className={`${isMarathi ? 'text-2xl xs:text-3xl sm:text-4xl lg:text-5xl leading-[1.05]' : 'text-3xl xs:text-4xl sm:text-5xl lg:text-6xl leading-tight'} font-bold text-orange-600 tracking-tight min-h-[1.2em] flex items-center justify-center relative glow-effect`}>
+                <span className={`${isMarathi ? 'inline-flex items-center px-4 py-2' : 'px-2'} font-inter tracking-tight relative bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 bg-clip-text text-transparent`}>
                   {displayText}
                   {/* Enhanced Glowing effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 bg-clip-text text-transparent blur-sm opacity-50 animate-pulse shimmer-effect"></div>
@@ -590,26 +608,28 @@ const Home = () => {
                     <div className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-32 animate-pulse shadow-lg"></div>
                   </div>
                   
-                  {/* Enhanced Main Animated Text */}
-                  <div className="mb-6 xs:mb-8">
-                    <h2 className="text-2xl xs:text-3xl sm:text-4xl lg:text-6xl font-bold text-yellow-300 mb-3 xs:mb-4 animate-pulse drop-shadow-2xl hover:scale-105 transition-all duration-300">
-                      स्वागत आहे
-                    </h2>
-                    <h3 className="text-xl xs:text-2xl sm:text-3xl lg:text-5xl font-bold text-white animate-bounce drop-shadow-2xl hover:scale-105 transition-all duration-300">
-                      बाळकृष्ण निवास
-                    </h3>
-                  </div>
-                  
-                  {/* Enhanced Animated Subtitle */}
-                  <div className="text-sm xs:text-base sm:text-lg lg:text-xl text-yellow-200 font-medium">
-                    <p className="animate-pulse drop-shadow-lg hover:scale-105 transition-all duration-300">{t('home.heartfeltWelcome')}</p>
-                  </div>
-                  
-                  {/* Enhanced Decorative Bottom Border */}
-                  <div className="flex items-center justify-center mt-8">
-                    <div className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-32 animate-pulse shadow-lg"></div>
-                    <div className="mx-4 w-4 h-4 bg-yellow-400 rounded-full animate-bounce shadow-lg"></div>
-                    <div className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-32 animate-pulse shadow-lg"></div>
+                  <div className="mb-6 xs:mb-8 text-left text-yellow-100 text-sm xs:text-base sm:text-lg lg:text-xl space-y-3">
+                    <p>
+                      ळकृष्ण निवास" हा एक न्यारा बंगला, असा बंगला जिथे अनेक कुटुंब नांदली आहेत. अनेकांना प्रेरणा देणारा बंगला, ज्यावर देवी सरस्वतीची कृपा आहे. प्रत्येक व्यक्तीचा जिथे आदर राखला जातो असे हे सासर - माहेरच्या एकतेचे प्रतीक. ज्ञान-बुद्धीचे भांडार तसेच धनलक्ष्मीचा सढळ आशीर्वाद असलेला, शंकर आणि पार्वतीने १९३५ साली घडवला स्वप्नरूपी "एक बंगला बने न्यारा".
+                    </p>
+                    <p>
+                      आज 90 वर्षा नंतर, नील आणि मनीषा, मेघना आणि संजना, आपल्या सर्वांचं स्वागत, आनंद, उल्हास आणि उत्साहाच्या तुषारांच्या शिडकाव्याने करत आहेत.
+                    </p>
+                    <p>
+                      दोन दिवस एकत्र घालवून सर्वां सोबत थोडा इतिहासाचा मागोवा घेऊया, जुन्या आठवणींना भावी पिढीच्या आधुनिकतेची जोड देत नात्यांना उजाळा देऊया.
+                    </p>
+                    <p>
+                      चला तर भेटूया २७ आणि २८ डिसेंबर २०२५ रोजी, आपल्या सर्व कुटुंबियांसह.
+                    </p>
+                    <p>
+                      बाळकृष्ण निवास येथे.
+                    </p>
+                    <p>
+                      हेच समक्ष आमंत्रण समजून आपण सर्वांनी सहकुटुंब नक्की यावं ही विनंती. आपल्या सर्वांची राहण्याची सोय 26 ते 29 डिसेंबर पर्यंत करण्यात आलेली आहे. नक्की भेटूया.
+                    </p>
+                    <p>
+                      आपल्या भेटीस आतुर - नील, मनीषा, संजना, मेघना
+                    </p>
                   </div>
                 </div>
                 

@@ -1,14 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, Users, UserCircle } from 'lucide-react';
-import { getProfileImageUrl } from '../../utils/profileImages';
+import { getProfileImageUrl, resolveProfileImage } from '../../utils/profileImages';
 
-const FamilyMemberCard = ({ member, spouse = null }) => {
+const FamilyMemberCard = ({ member, spouse = null, childrenCount = null }) => {
   if (!member) return null;
 
   const isMale = () => member?.gender?.toLowerCase() === 'male';
   
-  // Get spouse name with fallback
   const getSpouseName = () => {
     if (spouse?.fullName) return spouse.fullName;
     if (spouse?.firstName || spouse?.lastName) {
@@ -17,12 +16,15 @@ const FamilyMemberCard = ({ member, spouse = null }) => {
     return 'Spouse';
   };
 
+  const memberImage = resolveProfileImage(member);
+  const spouseImage = resolveProfileImage(spouse, isMale() ? 'Female' : 'Male');
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-center mb-4">
         <div className="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-gray-200 shadow-md">
           <img
-            src={getProfileImageUrl(member.profileImage, member.gender)}
+            src={memberImage}
             alt={member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim()}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -49,7 +51,7 @@ const FamilyMemberCard = ({ member, spouse = null }) => {
         </div>
         <div>
           <p className="text-sm text-gray-500">Children</p>
-          <p className="font-medium">{member.sonDaughterCount || 0}</p>
+          <p className="font-medium">{childrenCount !== null ? childrenCount : (typeof member.sonDaughterCount === 'number' ? member.sonDaughterCount : member.childrenSerNos ? member.childrenSerNos.length : 0)}</p>
         </div>
       </div>
 
@@ -59,7 +61,7 @@ const FamilyMemberCard = ({ member, spouse = null }) => {
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mr-3 border border-gray-200">
               <img
-                src={getProfileImageUrl(spouse?.profileImage, isMale() ? 'Female' : 'Male')}
+                src={spouseImage}
                 alt="Spouse"
                 className="w-full h-full object-cover"
                 onError={(e) => {

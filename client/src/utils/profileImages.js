@@ -1,6 +1,5 @@
 import defaultImages from '../photos_base64.json';
 
-// Get default profile image based on gender
 export function getDefaultProfileImage(gender) {
   if (!gender) return null;
 
@@ -11,48 +10,112 @@ export function getDefaultProfileImage(gender) {
 
   if (genderImages.length === 0) return null;
 
-  // Return a random image for the gender
   const randomIndex = Math.floor(Math.random() * genderImages.length);
   return defaultImages[genderImages[randomIndex]];
 }
 
-// Get profile image URL with fallback to default
+const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/;
+
+const toBase64FromArray = (values) => {
+  if (!values || values.length === 0) return '';
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let i = 0; i < values.length; i += chunkSize) {
+    const chunk = values.slice(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  if (typeof window !== 'undefined' && window.btoa) {
+    return window.btoa(binary);
+  }
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(binary, 'binary').toString('base64');
+  }
+  return '';
+};
+
+const normalizeStringSource = (input) => {
+  if (!input) return '';
+  return input.trim();
+};
+
 export function getProfileImageUrl(profileImage, gender) {
-  // Handle object format with data, mimeType, originalName
-  if (profileImage && typeof profileImage === 'object' && profileImage.data) {
+  if (profileImage && typeof profileImage === 'object') {
     const mimeType = profileImage.mimeType || 'image/jpeg';
-    const base64Data = profileImage.data;
-    return `data:${mimeType};base64,${base64Data}`;
+    const raw = profileImage.data ?? profileImage.base64 ?? profileImage.value ?? profileImage.source;
+    if (typeof raw === 'string') {
+      const trimmed = normalizeStringSource(raw);
+      if (!trimmed) {
+        return getDefaultProfileImage(gender);
+      }
+      if (trimmed.startsWith('data:')) {
+        return trimmed;
+      }
+      const compact = trimmed.replace(/\s+/g, '');
+      if (BASE64_PATTERN.test(compact) && compact.length >= 40) {
+        return `data:${mimeType};base64,${compact}`;
+      }
+    }
+    if (Array.isArray(raw) || ArrayBuffer.isView(raw)) {
+      const values = Array.isArray(raw) ? raw : Array.from(raw);
+      const base64 = toBase64FromArray(values);
+      if (base64) {
+        return `data:${mimeType};base64,${base64}`;
+      }
+    }
+    if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+      return getProfileImageUrl({ ...profileImage, data: raw.data }, gender);
+    }
+    if (typeof profileImage.url === 'string') {
+      const trimmedUrl = normalizeStringSource(profileImage.url);
+      if (trimmedUrl) {
+        return trimmedUrl;
+      }
+    }
   }
 
-  // Ensure profileImage is a string before processing
   if (profileImage && typeof profileImage === 'string') {
-    // Backend now returns base64 images as complete data URIs
-    // Check if it's already a complete data URL
-    if (profileImage.startsWith('data:')) {
-      return profileImage;
+    const trimmed = normalizeStringSource(profileImage);
+    if (!trimmed) {
+      return getDefaultProfileImage(gender);
     }
-
-    // Convert Google Drive share URLs to direct view URLs
-    if (profileImage.includes('drive.google.com')) {
-      const fileId = profileImage.split('id=')[1];
+    if (trimmed.startsWith('data:')) {
+      return trimmed;
+    }
+    if (trimmed.includes('drive.google.com')) {
+      const fileId = trimmed.split('id=')[1];
       if (fileId) {
         return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400`;
       }
     }
-
-    // Check if it's just a base64 string (no data URI prefix)
-    // Base64 regex pattern - allows common base64 characters
-    const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
-    if (base64Pattern.test(profileImage) && profileImage.length > 100) {
-      // Assume it's a JPEG base64 string and convert to data URL
-      return `data:image/jpeg;base64,${profileImage}`;
+    const compact = trimmed.replace(/\s+/g, '');
+    if (BASE64_PATTERN.test(compact) && compact.length > 100) {
+      return `data:image/jpeg;base64,${compact}`;
     }
-
-    // Assume profileImage is already a valid URL
-    return profileImage;
+    return trimmed;
   }
 
-  // Return default image based on gender
   return getDefaultProfileImage(gender);
+}
+
+export function resolveProfileImage(person, fallbackGender) {
+  const gender = person?.gender || fallbackGender;
+  const candidates = [
+    person?.profileImage,
+    person?.personalDetails?.profileImage,
+    person?.profilePicture,
+    person?.profileImageData,
+    person?.profileImageUrl,
+    person?.photo,
+    person?.image,
+    person?.avatar
+  ];
+  for (const candidate of candidates) {
+    if (candidate) {
+      const resolved = getProfileImageUrl(candidate, gender);
+      if (resolved) {
+        return resolved;
+      }
+    }
+  }
+  return getProfileImageUrl(null, gender);
 }

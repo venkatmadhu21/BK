@@ -62,7 +62,9 @@ export const transformMemberData = (member) => {
     Bio: personal.aboutYourself || member.Bio || member.bio || '',
     bio: personal.aboutYourself || member.Bio || member.bio || '',
     
-    profileImage: personal.profileImage || null,
+    profileImage: personal.profileImage || member.profileImage || member.profilePicture || personal.profileImageData || member.profileImageData || member.profileImageUrl || null,
+    profileImageData: personal.profileImageData || member.profileImageData || null,
+    profilePicture: member.profilePicture || null,
     
     // Marital Status
     everMarried: personal.everMarried === 'yes' ? true : false,

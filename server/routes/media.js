@@ -39,12 +39,26 @@ const validateImagesArray = body('images')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const mediaItems = await Media.find()
-      .populate('uploadedBy', 'firstName lastName profilePicture')
-      .sort({ createdAt: -1 })
-      .lean();
+    const { page = 1, limit = 50 } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
 
-    res.json({ media: mediaItems });
+    const [mediaItems, total] = await Promise.all([
+      Media.find()
+        .populate('uploadedBy', 'firstName lastName profilePicture')
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      Media.estimatedDocumentCount()
+    ]);
+
+    res.json({
+      media: mediaItems,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+      currentPage: pageNum
+    });
   } catch (error) {
     console.error('Failed to fetch media items', error);
     res.status(500).json({ message: 'Failed to fetch media items' });

@@ -54,4 +54,6 @@ MediaSchema.virtual('imageCount').get(function() {
   return Array.isArray(this.images) ? this.images.length : 0;
 });
 
+MediaSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Media', MediaSchema);

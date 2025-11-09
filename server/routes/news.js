@@ -1,5 +1,7 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const News = require('../models/News');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
@@ -94,17 +96,40 @@ router.post('/', [
       isPublished
     } = req.body;
 
+    const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
+    const publishStatus = isAdmin ? Boolean(isPublished) : false;
+
+    let authorId = req.user?.id;
+
+    if (typeof authorId === 'string' && authorId.includes(':')) {
+      const extractedId = authorId.split(':').pop();
+      if (mongoose.Types.ObjectId.isValid(extractedId)) {
+        authorId = extractedId;
+      }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(authorId) && typeof req.user?.email === 'string') {
+      const dbUser = await User.findOne({ email: req.user.email.toLowerCase() }).select('_id');
+      if (dbUser) {
+        authorId = dbUser._id;
+      }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(authorId)) {
+      return res.status(400).json({ message: 'Valid user required to create news' });
+    }
+
     const news = new News({
       title,
       content,
       summary,
-      author: req.user.id,
+      author: authorId,
       category,
       images,
       priority,
       tags,
-      isPublished: isPublished || false,
-      publishDate: isPublished ? new Date() : null
+      isPublished: publishStatus,
+      publishDate: publishStatus ? new Date() : null
     });
 
     await news.save();

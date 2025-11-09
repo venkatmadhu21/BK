@@ -12,7 +12,67 @@ const {
 
 const router = express.Router();
 
-// Helper function to transform member data from Members collection
+const relationCache = new Map();
+const treeCache = new Map();
+const CACHE_TTL_MS = 60000;
+const MEMBER_SUMMARY_FIELDS = "serNo vansh level fatherSerNo motherSerNo spouseSerNo childrenSerNos isapproved personalDetails.firstName personalDetails.middleName personalDetails.lastName personalDetails.gender personalDetails.dateOfBirth personalDetails.dateOfDeath personalDetails.isAlive";
+const MEMBER_TREE_FIELDS = `${MEMBER_SUMMARY_FIELDS} personalDetails.profileImage`;
+const normalizeSerNo = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : null;
+};
+const normalizeSerNoArray = (values) => (Array.isArray(values) ? values.map(normalizeSerNo).filter((n) => n !== null) : []);
+const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/;
+const toBase64FromArray = (values) => {
+  if (!values || !values.length) return "";
+  const buffer = Buffer.from(values);
+  return buffer.toString("base64");
+};
+const normalizeStringSource = (input) => (typeof input === "string" ? input.trim() : "");
+const serializeProfileImage = (image) => {
+  if (!image) return null;
+  if (typeof image === "string") {
+    const trimmed = normalizeStringSource(image);
+    if (!trimmed) return null;
+    if (trimmed.startsWith("data:")) return trimmed;
+    const compact = trimmed.replace(/\s+/g, "");
+    if (BASE64_PATTERN.test(compact) && compact.length > 100) {
+      return `data:image/jpeg;base64,${compact}`;
+    }
+    return trimmed;
+  }
+  if (Array.isArray(image) || ArrayBuffer.isView(image)) {
+    const base64 = toBase64FromArray(Array.isArray(image) ? image : Array.from(image));
+    return base64 ? `data:image/jpeg;base64,${base64}` : null;
+  }
+  if (typeof image === "object") {
+    const mimeType = image.mimeType || image.contentType || "image/jpeg";
+    const url = normalizeStringSource(
+      image.url || image.secure_url || image.secureUrl || image.Location || image.location || image.path || image.href || image.link
+    );
+    if (url) {
+      if (url.startsWith("data:")) return url;
+      return url;
+    }
+    const raw = image.data || image.base64 || image.value || image.source;
+    if (typeof raw === "string") {
+      const trimmed = normalizeStringSource(raw);
+      if (!trimmed) return null;
+      if (trimmed.startsWith("data:")) return trimmed;
+      const compact = trimmed.replace(/\s+/g, "");
+      if (BASE64_PATTERN.test(compact) && compact.length > 100) {
+        return `data:${mimeType};base64,${compact}`;
+      }
+      return trimmed;
+    }
+    if (Array.isArray(raw) || ArrayBuffer.isView(raw)) {
+      const base64 = toBase64FromArray(Array.isArray(raw) ? raw : Array.from(raw));
+      return base64 ? `data:${mimeType};base64,${base64}` : null;
+    }
+  }
+  return null;
+};
+
 const transformMemberData = (member) => {
   if (!member) return null;
   
@@ -47,10 +107,7 @@ const transformMemberData = (member) => {
     aboutYourself: member.personalDetails?.aboutYourself || '',
     profession: member.personalDetails?.profession || '',
     qualifications: member.personalDetails?.qualifications || '',
-    // Profile image as base64 (with mime type)
-    profileImage: member.personalDetails?.profileImage?.data ? 
-      `data:${member.personalDetails.profileImage.mimeType || 'image/jpeg'};base64,${member.personalDetails.profileImage.data}` 
-      : null,
+    profileImage: serializeProfileImage(member.personalDetails?.profileImage),
     // Married status for display
     isAlive: member.personalDetails?.isAlive === 'yes',
     dateOfDeath: member.personalDetails?.dateOfDeath,
@@ -89,6 +146,7 @@ router.post(
   addFamilyMember
 );
 
+router.get("/", getAllFamilyMembers);
 router.get("/all", getAllFamilyMembers);
 router.get("/members", getAllFamilyMembers);  // Alias for /all to support frontend calls
 router.get("/search", searchParents);
@@ -115,7 +173,7 @@ router.get("/member-new/:serNo", async (req, res) => {
     
     console.log("Looking for member with serNo:", serNo);
     // Fetch from Members collection (new collection with full profile data)
-    const member = await Members.findOne({ serNo });
+    const member = await Members.findOne({ serNo }).lean();
 
     if (!member) {
       console.log("Member not found with serNo:", serNo);
@@ -157,7 +215,7 @@ router.get("/member-new/:serNo/children", async (req, res) => {
     }
     
     // First get the parent member to access childrenSerNos directly
-    const parentMember = await Members.findOne({ serNo });
+    const parentMember = await Members.findOne({ serNo }).lean();
     
     if (!parentMember) {
       console.log("Parent member not found with serNo:", serNo);
@@ -175,7 +233,7 @@ router.get("/member-new/:serNo/children", async (req, res) => {
     // Get the actual member data for children from Members collection
     const children = await Members.find({ 
       serNo: { $in: childSerNos } 
-    }).sort({ serNo: 1 });
+    }).sort({ serNo: 1 }).lean();
 
     console.log(`Retrieved ${children.length} child members for serNo ${serNo}`);
     
@@ -211,7 +269,7 @@ router.get("/member-new/:serNo/parents", async (req, res) => {
     }
     
     // Get the child member to access parent serNos directly
-    const childMember = await Members.findOne({ serNo });
+    const childMember = await Members.findOne({ serNo }).lean();
     
     if (!childMember) {
       console.log("Child member not found with serNo:", serNo);
@@ -256,11 +314,16 @@ router.get("/dynamic-relations/:serNo", async (req, res) => {
       return res.status(400).json({ message: "Invalid serNo parameter" });
     }
 
-    // Load all members once and build index
-    const members = await Members.find().lean();
+    const cacheKey = String(serNo);
+    const now = Date.now();
+    const cached = relationCache.get(cacheKey);
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      return res.json(cached.data);
+    }
+
+    const members = await Members.find({}, MEMBER_SUMMARY_FIELDS).lean();
     const membersById = buildMembersIndex(members);
 
-    // Load relationRules for English -> Marathi mapping
     let relationRulesMap = new Map();
     try {
       const coll = mongoose.connection.db.collection("relationrules");
@@ -274,11 +337,12 @@ router.get("/dynamic-relations/:serNo", async (req, res) => {
 
     const results = getRelationsForSerNo(serNo, membersById, relationRulesMap);
 
-    // Transform the related member data to flatten it (for frontend compatibility)
     const transformedResults = results.map((relation) => ({
       ...relation,
       related: transformMemberData(relation.related)
     }));
+
+    relationCache.set(cacheKey, { timestamp: now, data: transformedResults });
 
     return res.json(transformedResults);
   } catch (error) {
@@ -292,88 +356,129 @@ router.get("/dynamic-relations/:serNo", async (req, res) => {
 // @access  Public
 router.get("/tree-fmem/:serNo", async (req, res) => {
   try {
-    const serNo = parseInt(req.params.serNo);
+    const serNo = parseInt(req.params.serNo, 10);
+    if (!Number.isFinite(serNo) || serNo <= 0) {
+      return res.status(400).json({ message: "Invalid serNo parameter" });
+    }
     console.log(`Fetching family tree for serNo: ${serNo} using Members collection`);
 
-    const rootMember = await Members.findOne({ serNo }).lean();
+    const cacheKey = String(serNo);
+    const now = Date.now();
+    const cached = treeCache.get(cacheKey);
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      return res.json(cached.data);
+    }
+
+    const rootMember = await Members.findOne({ serNo }).select(MEMBER_TREE_FIELDS).lean();
 
     if (!rootMember) {
       console.log(`Member with serNo ${serNo} not found`);
       return res.status(404).json({ message: "Member not found" });
     }
 
-    const rootName = rootMember.personalDetails?.firstName || '';
-    console.log(`Found root member: ${rootName} (${rootMember.serNo})`);
+    const membersBySerNo = new Map();
+    membersBySerNo.set(rootMember.serNo, rootMember);
 
-    async function buildFamilyTree(member, depth = 1, maxDepth = 10) {
-      if (depth > maxDepth) return null;
+    const queue = [rootMember.serNo];
+    const visited = new Set([rootMember.serNo]);
 
-      const childSerNos = member.childrenSerNos || [];
-      
-      const firstName = member.personalDetails?.firstName || '';
-      const middleName = member.personalDetails?.middleName || '';
-      const lastName = member.personalDetails?.lastName || '';
-      const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ').trim();
-
-      // Fetch spouse if spouseSerNo exists
-      let spouse = null;
-      if (member.spouseSerNo) {
-        spouse = await Members.findOne({ serNo: member.spouseSerNo }).lean();
-        if (spouse) {
-          const spouseFN = spouse.personalDetails?.firstName || '';
-          const spouseMN = spouse.personalDetails?.middleName || '';
-          const spouseLN = spouse.personalDetails?.lastName || '';
-          spouse.fullName = [spouseFN, spouseMN, spouseLN].filter(Boolean).join(' ').trim();
-          spouse.profileImage = spouse.personalDetails?.profileImage;
-          spouse.gender = spouse.personalDetails?.gender || '';
+    while (queue.length) {
+      const currentId = queue.shift();
+      const current = membersBySerNo.get(currentId);
+      if (!current) {
+        continue;
+      }
+      const childIds = normalizeSerNoArray(current.childrenSerNos);
+      const spouseId = normalizeSerNo(current.spouseSerNo);
+      const relatedIds = spouseId !== null ? [...childIds, spouseId] : [...childIds];
+      const missingIds = relatedIds.filter((id) => !membersBySerNo.has(id));
+      if (missingIds.length) {
+        const docs = await Members.find({ serNo: { $in: missingIds } }).select(MEMBER_TREE_FIELDS).lean();
+        for (const doc of docs) {
+          if (doc?.serNo !== undefined) {
+            membersBySerNo.set(doc.serNo, doc);
+          }
         }
       }
+      for (const childId of childIds) {
+        if (!visited.has(childId) && membersBySerNo.has(childId)) {
+          visited.add(childId);
+          queue.push(childId);
+        }
+      }
+    }
 
-      const treeNode = {
-        serNo: member.serNo,
+    const maxDepth = 10;
+    const buildNode = (memberDoc, depth = 1) => {
+      if (!memberDoc || depth > maxDepth) {
+        return null;
+      }
+      const firstName = memberDoc.personalDetails?.firstName || "";
+      const middleName = memberDoc.personalDetails?.middleName || "";
+      const lastName = memberDoc.personalDetails?.lastName || "";
+      const fullNameParts = [firstName, middleName, lastName].filter(Boolean);
+      const fullName = fullNameParts.join(" ").trim();
+      const childIds = normalizeSerNoArray(memberDoc.childrenSerNos);
+      const children = childIds
+        .map((id) => buildNode(membersBySerNo.get(id), depth + 1))
+        .filter(Boolean);
+      const spouseId = normalizeSerNo(memberDoc.spouseSerNo);
+      const spouseDoc = spouseId !== null ? membersBySerNo.get(spouseId) : null;
+      let spouse = null;
+      if (spouseDoc) {
+        const spouseFirst = spouseDoc.personalDetails?.firstName || "";
+        const spouseMiddle = spouseDoc.personalDetails?.middleName || "";
+        const spouseLast = spouseDoc.personalDetails?.lastName || "";
+        const spouseFull = [spouseFirst, spouseMiddle, spouseLast].filter(Boolean).join(" ").trim();
+        spouse = {
+          serNo: spouseDoc.serNo,
+          firstName: spouseFirst,
+          middleName: spouseMiddle,
+          lastName: spouseLast,
+          fullName: spouseFull,
+          gender: spouseDoc.personalDetails?.gender || "",
+          level: spouseDoc.level,
+          vansh: spouseDoc.vansh,
+          profileImage: serializeProfileImage(spouseDoc.personalDetails?.profileImage)
+        };
+      }
+      return {
+        serNo: memberDoc.serNo,
         firstName,
         middleName,
         lastName,
         name: fullName,
         fullName,
-        gender: member.personalDetails?.gender || '',
-        level: member.level,
-        vansh: member.vansh,
-        spouseSerNo: member.spouseSerNo,
-        spouse: spouse,
-        fatherSerNo: member.fatherSerNo,
-        motherSerNo: member.motherSerNo,
-        childrenSerNos: childSerNos,
-        isApproved: member.isapproved,
-        profileImage: member.personalDetails?.profileImage,
-        children: []
+        gender: memberDoc.personalDetails?.gender || "",
+        level: memberDoc.level,
+        vansh: memberDoc.vansh,
+        spouseSerNo: spouseId,
+        spouse,
+        fatherSerNo: normalizeSerNo(memberDoc.fatherSerNo),
+        motherSerNo: normalizeSerNo(memberDoc.motherSerNo),
+        childrenSerNos: childIds,
+        isApproved: memberDoc.isapproved,
+        profileImage: serializeProfileImage(memberDoc.personalDetails?.profileImage),
+        dob: memberDoc.personalDetails?.dateOfBirth,
+        dateOfBirth: memberDoc.personalDetails?.dateOfBirth,
+        dateOfDeath: memberDoc.personalDetails?.dateOfDeath,
+        isAlive: memberDoc.personalDetails?.isAlive === "yes" ? true : memberDoc.personalDetails?.isAlive === "no" ? false : undefined,
+        children
       };
+    };
 
-      if (childSerNos.length === 0) {
-        return treeNode;
-      }
-
-      const children = await Members.find({ serNo: { $in: childSerNos } }).lean();
-      
-      const childrenWithDescendants = [];
-      for (const child of children) {
-        const childTree = await buildFamilyTree(child, depth + 1, maxDepth);
-        if (childTree) {
-          childrenWithDescendants.push(childTree);
-        }
-      }
-
-      treeNode.children = childrenWithDescendants;
-      return treeNode;
+    const tree = buildNode(rootMember);
+    if (!tree) {
+      return res.status(404).json({ message: "Member not found" });
     }
 
-    const tree = await buildFamilyTree(rootMember);
-    
-    console.log(`Returning family tree with root: ${rootName} (${tree.serNo})`);
+    treeCache.set(cacheKey, { timestamp: now, data: tree });
+
+    console.log(`Returning family tree with root: ${tree.fullName || ""} (${tree.serNo})`);
     res.json(tree);
   } catch (error) {
-    console.error('Error building family tree:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error building family tree:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 

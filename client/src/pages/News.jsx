@@ -708,15 +708,15 @@ const News = () => {
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-all duration-300">
               <Heart size={16} />
-              <span className="text-sm font-medium">{news.likes}</span>
+              <span className="text-sm font-medium">{Array.isArray(news.likes) ? news.likes.length : Number.isFinite(news.likes) ? news.likes : 0}</span>
             </button>
             <button className="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-all duration-300">
               <MessageCircle size={16} />
-              <span className="text-sm font-medium">{news.comments}</span>
+              <span className="text-sm font-medium">{Array.isArray(news.comments) ? news.comments.length : Number.isFinite(news.comments) ? news.comments : 0}</span>
             </button>
             <div className="flex items-center gap-1 text-gray-500">
               <Eye size={16} />
-              <span className="text-sm font-medium">{news.views}</span>
+              <span className="text-sm font-medium">{Number.isFinite(news.views) ? news.views : 0}</span>
             </div>
           </div>
           <button 
@@ -986,7 +986,7 @@ const News = () => {
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               {filteredNews.map((news, index) => (
                 <div 
-                  key={news.id} 
+                  key={news._id || news.id || `news-${index}`}
                   className="transition-all duration-500"
                   style={{ 
                     animationDelay: `${index * 100}ms`,

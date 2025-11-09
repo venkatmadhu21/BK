@@ -121,6 +121,7 @@ function buildCoupleHierarchy(source, maybeRootSerNo) {
 const NODE_CARD_WIDTH = 480; // total width for couple node
 const NODE_CARD_HEIGHT = 150;
 const COUPLE_GAP = 12;
+const INITIAL_EXPAND_DEPTH = 2;
 
 const normalizeGender = (value) => {
   const normalized = (value || '').toString().trim().toLowerCase();
@@ -155,11 +156,19 @@ const getPhotoFallback = ({ photo, gender, serNo }) => {
   return `/images/profiles/${genderClass}${fallbackIndex}.jpg`;
 };
 
-function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, isExpanded, onToggleExpand }) {
+const PersonCard = React.memo(function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, isExpanded, onToggleExpand }) {
   const genderClass = normalizeGender(gender);
   const { cardColor, bgColor } = genderStyles[genderClass];
-  const displayPhoto = getPhotoFallback({ photo, gender: genderClass, serNo });
+  const displayPhoto = useMemo(() => getPhotoFallback({ photo, gender: genderClass, serNo }), [photo, genderClass, serNo]);
+  const fallbackPhoto = useMemo(() => getPhotoFallback({ photo: '', gender: genderClass, serNo }), [genderClass, serNo]);
   const displayName = name || 'Unknown';
+  const nameInitial = displayName.charAt(0).toUpperCase();
+  const handleImageError = useCallback((event) => {
+    if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+    event.currentTarget.dataset.fallbackApplied = 'true';
+    event.currentTarget.src = fallbackPhoto;
+  }, [fallbackPhoto]);
+
   return (
     <div
       className={`person-card ${genderClass}`}
@@ -194,7 +203,6 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
         e.currentTarget.style.filter = 'brightness(1)';
       }}
     >
-      {/* Expand/Collapse Button */}
       {hasChildren && (
         <button
           onClick={onToggleExpand}
@@ -234,7 +242,6 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
         </button>
       )}
 
-      {/* Decorative gradient overlay */}
       <div
         style={{
           position: 'absolute',
@@ -253,22 +260,44 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
           width: 60,
           height: 60,
           borderRadius: '50%',
-          background: `url(${displayPhoto})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          overflow: 'hidden',
           flex: '0 0 auto',
           border: `2px solid #ffffff`,
           boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '20px',
-          color: '#ffffff',
-          fontWeight: 'bold',
-          transition: 'all 0.3s ease',
+          position: 'relative',
+          backgroundColor: '#f3f4f6',
         }}
       >
-        {!photo && displayName.charAt(0).toUpperCase()}
+        <img
+          src={displayPhoto}
+          alt={displayName}
+          loading="lazy"
+          data-fallback-applied="false"
+          onError={handleImageError}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+        {!photo && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 20,
+              fontWeight: 'bold',
+              color: '#ffffff',
+              backgroundColor: `${cardColor}40`,
+            }}
+          >
+            {nameInitial}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 1 }}>
@@ -314,9 +343,9 @@ function PersonCard({ name, photo, gender, serNo, vansh, onClick, hasChildren, i
       </div>
     </div>
   );
-}
+});
 
-function CoupleNode({ nodeDatum, onNodeClick, onToggleExpand, expandedNodes }) {
+const CoupleNode = React.memo(function CoupleNode({ nodeDatum, onNodeClick, onToggleExpand, expandedNodes }) {
   const hasChildren = (nodeDatum.children && nodeDatum.children.length > 0) ||
                      (nodeDatum._collapsed) ||
                      (nodeDatum.nodeType === 'couple' && nodeDatum.spouse?.children && nodeDatum.spouse.children.length > 0);
@@ -388,7 +417,7 @@ function CoupleNode({ nodeDatum, onNodeClick, onToggleExpand, expandedNodes }) {
       )}
     </div>
   );
-}
+});
 
 const containerStyles = {
   width: '100%',
@@ -452,18 +481,19 @@ export default function ReactD3FamilyTree() {
         setData(tree);
 
         const initialExpanded = new Set();
-        const collectExpandableNodes = (node) => {
+        const collectExpandableNodes = (node, depth = 0) => {
+          if (!node) return;
+          const nodeSerNo = node.attributes?.serNo;
           const hasChildren = (node.children && node.children.length > 0) ||
                              (node.nodeType === 'couple' && node.spouse?.children && node.spouse.children.length > 0);
-          if (hasChildren) {
-            initialExpanded.add(node.attributes?.serNo);
-            if (node.children) {
-              node.children.forEach(collectExpandableNodes);
-            }
+          if (nodeSerNo != null && (depth === 0 || (hasChildren && depth <= INITIAL_EXPAND_DEPTH))) {
+            initialExpanded.add(nodeSerNo);
           }
+          if (!node.children || depth >= INITIAL_EXPAND_DEPTH) return;
+          node.children.forEach((child) => collectExpandableNodes(child, depth + 1));
         };
         if (tree) {
-          collectExpandableNodes(tree);
+          collectExpandableNodes(tree, 0);
         }
         setExpandedNodes(initialExpanded);
       } catch (e) {

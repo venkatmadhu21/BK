@@ -29,6 +29,7 @@ const Media = () => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [isImageAnimating, setIsImageAnimating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [newsItems, setNewsItems] = useState([]);
   const [eventItems, setEventItems] = useState([]);
@@ -554,16 +555,24 @@ const Media = () => {
 
     const autoSlideInterval = setInterval(() => {
       setSelectedImageIndex(prevIndex => {
-        // Loop back to first image when reaching the end
         if (prevIndex < selectedAlbum.images.length - 1) {
           return prevIndex + 1;
         }
         return 0;
       });
-    }, 5500); // 5.5 seconds
+    }, 5500);
 
     return () => clearInterval(autoSlideInterval);
   }, [selectedAlbum, isHovering]);
+
+  useEffect(() => {
+    if (!selectedAlbum) {
+      return;
+    }
+    setIsImageAnimating(true);
+    const timer = setTimeout(() => setIsImageAnimating(false), 900);
+    return () => clearTimeout(timer);
+  }, [selectedAlbum?.id, selectedImageIndex]);
 
   const currentDate = useMemo(() => {
     if (!selectedAlbum?.date) {
@@ -585,7 +594,7 @@ const Media = () => {
   }, [selectedAlbum?.date, locale]);
 
   return (
-    <div className="heritage-bg relative min-h-screen pt-28 xs:pt-32 sm:pt-36 lg:pt-44">
+    <div className="heritage-bg relative min-h-screen pt-28 xs:pt-32 sm:pt-36 lg:pt-44 text-[#71311f]">
       {/* Decorative Elements */}
       <div className="heritage-gradient-overlay" />
       <div className="heritage-decoration" />
@@ -603,34 +612,33 @@ const Media = () => {
               />
             </div>
           )}
-          {/* Header Section */}
           <div className="mb-12 text-center animate-fade-in">
-            <div className="inline-flex items-center justify-center mb-4">
+            <div className="inline-flex items-center justify-center mb-5">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-400 rounded-3xl blur-lg opacity-40 animate-pulse" />
-                <div className="relative h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-100 to-amber-100 shadow-xl flex">
-                  <ImageIcon size={32} className="text-orange-600" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-100 via-orange-200 to-amber-200 blur-xl opacity-80" />
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-50 via-amber-100 to-orange-100 shadow-xl ring-1 ring-orange-200/60">
+                  <ImageIcon size={32} className="text-[#8d341f]" />
                 </div>
               </div>
             </div>
-            <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-700 via-orange-600 to-amber-600 bg-clip-text text-transparent mb-3">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-gradient-to-r from-[#8a3520] via-[#b45b2d] to-[#d78545] bg-clip-text mb-3">
               {t('mediaPage.header.title')}
             </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="max-w-2xl mx-auto text-base sm:text-lg text-[#71311f]/80">
               {t('mediaPage.header.description')}
             </p>
           </div>
 
           {user && (
             <div className="mb-12 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              <div className="lg:col-span-2 heritage-card p-6 rounded-3xl shadow-xl border border-orange-100 bg-white/80 backdrop-blur animate-fade-in">
+              <div className="lg:col-span-2 heritage-card rounded-[32px] border border-orange-200/70 bg-gradient-to-br from-orange-50/90 via-white/95 to-white/90 p-6 sm:p-7 shadow-xl shadow-orange-200/60 backdrop-blur animate-fade-in">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 shadow-lg">
                     <Upload size={24} className="text-orange-600" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{t('mediaPage.upload.title')}</h2>
-                    <p className="text-sm text-gray-500">{t('mediaPage.upload.description')}</p>
+                    <h2 className="text-2xl font-bold text-[#5b2617]">{t('mediaPage.upload.title')}</h2>
+                    <p className="text-sm text-[#71311f]/70">{t('mediaPage.upload.description')}</p>
                   </div>
                 </div>
 
@@ -647,27 +655,27 @@ const Media = () => {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('mediaPage.upload.albumTitle')}</label>
+                    <label className="block text-sm font-semibold text-[#5b2617] mb-2">{t('mediaPage.upload.albumTitle')}</label>
                     <input
                       type="text"
                       value={uploadTitle}
                       onChange={(e) => setUploadTitle(e.target.value)}
                       placeholder={t('mediaPage.upload.albumTitlePlaceholder')}
-                      className="w-full rounded-xl border border-orange-100 bg-white/80 px-4 py-3 focus:border-orange-300 focus:ring-2 focus:ring-orange-200 transition"
+                      className="w-full rounded-xl border border-orange-200/70 bg-white/85 px-4 py-3 text-[#5b2617] focus:border-orange-300 focus:ring-2 focus:ring-orange-200 transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('mediaPage.upload.descriptionLabel')}</label>
+                    <label className="block text-sm font-semibold text-[#5b2617] mb-2">{t('mediaPage.upload.descriptionLabel')}</label>
                     <textarea
                       value={uploadDescription}
                       onChange={(e) => setUploadDescription(e.target.value)}
                       placeholder={t('mediaPage.upload.descriptionPlaceholder')}
                       rows={3}
-                      className="w-full rounded-xl border border-orange-100 bg-white/80 px-4 py-3 focus:border-orange-300 focus:ring-2 focus:ring-orange-200 transition"
+                      className="w-full rounded-xl border border-orange-200/70 bg-white/85 px-4 py-3 text-[#5b2617] focus:border-orange-300 focus:ring-2 focus:ring-orange-200 transition"
                     />
                   </div>
 
-                  <div className="border-2 border-dashed border-orange-200 rounded-2xl p-6 bg-orange-50/30">
+                  <div className="border-2 border-dashed border-orange-300/60 rounded-2xl p-6 bg-gradient-to-br from-orange-50/60 via-white/80 to-white/85">
                     <input
                       id="media-upload"
                       type="file"
@@ -684,8 +692,8 @@ const Media = () => {
                         <Upload size={24} />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-gray-800">{t('mediaPage.upload.uploadInstructions')}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-sm font-semibold text-[#5b2617]">{t('mediaPage.upload.uploadInstructions')}</p>
+                        <p className="text-xs text-[#71311f]/70 mt-1">
                           {t('mediaPage.upload.uploadLimit', { count: MAX_UPLOAD_IMAGES, size: maxImageSizeMB })}
                         </p>
                       </div>
@@ -693,13 +701,13 @@ const Media = () => {
                   </div>
 
                   {uploadImages.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-orange-100 p-4">
+                    <div className="rounded-2xl border border-orange-200/70 bg-gradient-to-br from-orange-50/80 to-white/90 p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-gray-800">{t('mediaPage.upload.selectedImages')}</h3>
+                        <h3 className="text-sm font-semibold text-[#5b2617]">{t('mediaPage.upload.selectedImages')}</h3>
                         <button
                           type="button"
                           onClick={resetUploadForm}
-                          className="text-xs text-orange-600 hover:text-orange-700 font-semibold"
+                          className="text-xs text-[#a14825] hover:text-[#8f3a1d] font-semibold"
                         >
                           {t('mediaPage.upload.clearAll')}
                         </button>
@@ -707,7 +715,7 @@ const Media = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {uploadImages.map((image, index) => (
                           <div key={index} className="relative">
-                            <div className="aspect-square overflow-hidden rounded-xl border border-orange-100">
+                            <div className="aspect-square overflow-hidden rounded-xl border border-orange-200/70">
                               <img
                                 src={image.preview}
                                 alt={image.name || `upload-${index + 1}`}
@@ -721,7 +729,7 @@ const Media = () => {
                             >
                               <X size={14} />
                             </button>
-                            <p className="mt-2 text-xs text-gray-600 truncate">{image.name || t('mediaPage.upload.imageName', { index: index + 1 })}</p>
+                            <p className="mt-2 text-xs text-[#71311f]/75 truncate">{image.name || t('mediaPage.upload.imageName', { index: index + 1 })}</p>
                           </div>
                         ))}
                       </div>
@@ -732,10 +740,10 @@ const Media = () => {
                     type="button"
                     onClick={submitMediaUpload}
                     disabled={uploadingMedia || !uploadTitle.trim() || uploadImages.length === 0}
-                    className={`w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white transition ${
+                    className={`w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold transition ${
                       uploadingMedia || !uploadTitle.trim() || uploadImages.length === 0
-                        ? 'bg-orange-200 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg'
+                        ? 'bg-orange-100 text-[#b97e5d] cursor-not-allowed'
+                        : 'bg-gradient-to-r from-orange-200 to-amber-200 text-[#5b2617] hover:from-orange-250 hover:to-amber-200 shadow-lg shadow-orange-200/60'
                     }`}
                   >
                     {uploadingMedia ? (
@@ -753,22 +761,22 @@ const Media = () => {
                 </div>
               </div>
 
-              <div className="heritage-card p-6 rounded-3xl border border-orange-100 bg-white/80 backdrop-blur shadow-lg animate-fade-in">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{t('mediaPage.communityUploads.title')}</h3>
+              <div className="heritage-card rounded-[32px] border border-orange-200/60 bg-gradient-to-br from-orange-50/85 via-white/90 to-white/85 p-6 shadow-lg shadow-orange-200/40 backdrop-blur animate-fade-in">
+                <h3 className="text-xl font-bold text-[#5b2617] mb-4">{t('mediaPage.communityUploads.title')}</h3>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                   {mediaItems.length === 0 && (
-                    <p className="text-sm text-gray-500">{t('mediaPage.communityUploads.empty')}</p>
+                    <p className="text-sm text-[#71311f]/70">{t('mediaPage.communityUploads.empty')}</p>
                   )}
                   {mediaItems.map((item) => (
-                    <div key={item._id} className="border border-orange-100 rounded-2xl p-4 bg-white/70">
+                    <div key={item._id} className="rounded-2xl border border-orange-200/60 bg-gradient-to-br from-orange-50/70 to-white/85 p-4">
                       <div className="flex.items-center justify-between mb-3">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                          <p className="text-sm font-semibold text-[#5b2617]">{item.title}</p>
                           {item.description && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                            <p className="text-xs text-[#71311f]/70 mt-1 line-clamp-2">{item.description}</p>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500 text-right">
+                        <div className="text-xs text-[#71311f]/70 text-right">
                           <p>{new Date(item.createdAt).toLocaleDateString(locale)}</p>
                           <p>{t('mediaPage.communityUploads.photos', { count: item.images?.length || 0 })}</p>
                         </div>
@@ -784,12 +792,12 @@ const Media = () => {
                           </div>
                         ))}
                         {item.images.length > 3 && (
-                          <div className="aspect-square flex items-center justify-center rounded-xl border border-dashed border-orange-200 text-xs text-orange-600">
+                          <div className="aspect-square flex items-center justify-center rounded-xl border border-dashed border-orange-300/70 text-xs text-[#a14825]">
                             {t('mediaPage.communityUploads.morePhotos', { count: item.images.length - 3 })}
                           </div>
                         )}
                       </div>
-                      <div className="mt-3 text-xs text-gray-500">
+                      <div className="mt-3 text-xs text-[#71311f]/70">
                         <p>
                           {t('mediaPage.communityUploads.uploadedBy', {
                             name: item.uploadedBy ? `${item.uploadedBy.firstName || ''} ${item.uploadedBy.lastName || ''}`.trim() || t('mediaPage.albums.unknownUploader') : t('mediaPage.albums.unknownUploader')
@@ -806,15 +814,15 @@ const Media = () => {
           {/* Search and Filter Bar */}
           <div className="mb-10 flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-amber-200 rounded-xl blur opacity-0 group-hover:opacity-50 transition duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl blur opacity-0 group-hover:opacity-60 transition duration-300" />
               <div className="relative flex items-center">
-                <Search className="absolute left-4 text-orange-400 z-10" size={20} />
+                <Search className="absolute left-4 text-orange-300 z-10" size={20} />
                 <input
                   type="text"
                   placeholder={t('mediaPage.search.placeholder')}
                   value={filters.search}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-orange-100 bg-white/90 backdrop-blur focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-300 shadow-sm hover:shadow-md text-gray-800 placeholder-gray-400"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-orange-200/70 bg-white/90 backdrop-blur focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-300 shadow-sm hover:shadow-md text-[#5b2617] placeholder-[#9f6851]/60"
                 />
               </div>
             </div>
@@ -827,8 +835,8 @@ const Media = () => {
                   onClick={() => handleTypeChange(type)}
                   className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
                     filters.type === type
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xl shadow-orange-300/50 scale-105'
-                      : 'bg-white text-gray-700 border-2 border-orange-100 hover:border-orange-300 hover:bg-orange-50/50 shadow-md hover:shadow-lg'
+                      ? 'bg-gradient-to-r from-orange-200 to-amber-200 text-[#5b2617] shadow-xl shadow-orange-200/60 scale-105'
+                      : 'bg-orange-50/80 text-[#71311f] border border-orange-200 hover:border-orange-300 hover:bg-orange-100/80 shadow-md hover:shadow-lg'
                   }`}
                 >
                   {type === 'all' ? (
@@ -860,15 +868,15 @@ const Media = () => {
               <div className="text-center">
                 <div className="inline-flex items-center justify-center mb-6">
                   <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full animate-spin" style={{ animationDuration: '3s' }} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-amber-200 rounded-full animate-spin" style={{ animationDuration: '3s' }} />
                     <div className="absolute inset-2 bg-white rounded-full" />
                     <div className="absolute inset-2 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full animate-pulse" />
+                      <div className="w-3 h-3 bg-gradient-to-r from-orange-300 to-amber-300 rounded-full animate-pulse" />
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 font-semibold text-lg">{t('mediaPage.loading.title')}</p>
-                <p className="text-gray-400 text-sm mt-2">{t('mediaPage.loading.subtitle')}</p>
+                <p className="text-[#71311f]/75 font-semibold text-lg">{t('mediaPage.loading.title')}</p>
+                <p className="text-[#71311f]/60 text-sm mt-2">{t('mediaPage.loading.subtitle')}</p>
               </div>
             </div>
           )}
@@ -884,10 +892,10 @@ const Media = () => {
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >
                   {/* Card Background Glow */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-all duration-300 -z-10" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-orange-200 via-amber-200 to-orange-200 rounded-2xl blur-lg opacity-0 group-hover:opacity-70 transition-all duration-300 -z-10" />
 
                   {/* Card Content */}
-                  <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden rounded-2xl shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                  <div className="relative aspect-square overflow-hidden rounded-2xl shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-orange-50/90 via-amber-50/80 to-white/85">
                     <img
                       src={album.images[0].thumbnail || album.images[0].url}
                       alt={album.title}
@@ -896,7 +904,7 @@ const Media = () => {
 
                     {/* Photo Count Badge */}
                     {album.photoCount > 1 && (
-                      <div className="absolute top-3 right-3 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-sm font-bold shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <div className="absolute top-3 right-3 bg-gradient-to-br from-orange-200 to-amber-200 text-[#5b2617] rounded-full w-12 h-12 flex items-center justify-center text-sm font-bold shadow-lg group-hover:scale-110 transition-transform duration-300">
                         <div className="flex flex-col items-center">
                           <span className="text-xs opacity-70">+</span>
                           <span>{album.photoCount}</span>
@@ -905,7 +913,7 @@ const Media = () => {
                     )}
 
                     {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#3b140a]/85 via-[#3b140a]/25 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4" />
 
                     {/* Content on Hover */}
                     <div className="absolute inset-0 flex flex-col justify-end p-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
@@ -916,10 +924,10 @@ const Media = () => {
                         <span
                           className={`text-xs font-bold px-3 py-1 rounded-full ${
                             album.type === 'event'
-                              ? 'bg-blue-500 text-white'
+                              ? 'bg-[#f6d7b4] text-[#5b2617] border border-orange-200/70'
                               : album.type === 'news'
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-emerald-500 text-white'
+                                ? 'bg-[#f8caa4] text-[#5b2617] border border-orange-200/70'
+                                : 'bg-[#efd5c2] text-[#5b2617] border border-orange-200/70'
                           }`}
                         >
                           {mediaTypeBadges[album.type]}
@@ -929,7 +937,7 @@ const Media = () => {
                         </span>
                       </div>
                       {album.uploaderName && (
-                        <p className="text-white/90 text-xs font-medium">
+                        <p className="text-[#fde9d9] text-xs font-medium">
                           {t('mediaPage.communityUploads.uploadedBy', { name: album.uploaderName })}
                         </p>
                       )}
@@ -946,10 +954,10 @@ const Media = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 mb-6">
                 <ImageIcon size={40} className="text-orange-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl font-bold text-[#5b2617] mb-2">
                 {t('mediaPage.emptyState.title')}
               </h2>
-              <p className="text-gray-600 text-lg">
+              <p className="text-[#71311f]/75 text-lg">
                 {filters.search
                   ? t('mediaPage.emptyState.noResults')
                   : t('mediaPage.emptyState.noAlbums')}
@@ -1021,11 +1029,26 @@ const Media = () => {
                 </div>
               )}
 
-              <div className="media-3d-active relative">
+              <div
+                className={`media-3d-active relative ${isImageAnimating ? 'heritage-spotlight' : ''} ${isHovering ? 'heritage-spotlight-hover' : ''}`}
+              >
+                <div
+                  className={`heritage-light-trace ${isImageAnimating ? 'heritage-light-trace-active' : ''}`}
+                  aria-hidden="true"
+                />
+                <div
+                  className={`heritage-radiant-ring ${isImageAnimating || isHovering ? 'heritage-radiant-ring-visible' : ''}`}
+                  aria-hidden="true"
+                />
+                <div
+                  className={`heritage-firefly-cluster ${isHovering ? 'heritage-firefly-show' : ''}`}
+                  aria-hidden="true"
+                />
                 <img
+                  key={selectedAlbum.images[selectedImageIndex].id || `${selectedAlbum.id}-${selectedImageIndex}`}
                   src={selectedAlbum.images[selectedImageIndex].url}
                   alt={selectedAlbum.title}
-                  className="media-3d-active-image"
+                  className={`media-3d-active-image ${isImageAnimating ? 'heritage-image-animate' : ''}`}
                 />
 
                 <div className="absolute top-4 left-4 bg-black/60 text-white rounded-full px-4 py-2 text-sm font-semibold backdrop-blur">
@@ -1041,8 +1064,8 @@ const Media = () => {
                   disabled={downloading}
                   className={`absolute top-4 right-4 flex items-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 shadow-md backdrop-blur ${
                     downloading
-                      ? 'bg-white/20 text-gray-200 cursor-wait'
-                      : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:scale-105 hover:shadow-lg'
+                      ? 'bg-orange-100/30 text-[#f4d9c1] cursor-wait'
+                      : 'bg-gradient-to-r from-orange-200 to-amber-200 text-[#5b2617] hover:from-orange-250 hover:to-amber-200 hover:scale-105 hover:shadow-lg shadow-orange-200/50'
                   }`}
                 >
                   <Download size={16} />
@@ -1112,8 +1135,8 @@ const Media = () => {
                     disabled={downloading}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 shadow-md backdrop-blur ${
                       downloading
-                        ? 'bg-white/20 text-gray-200 cursor-wait'
-                        : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:scale-105 hover:shadow-lg'
+                        ? 'bg-orange-100/30 text-[#f4d9c1] cursor-wait'
+                        : 'bg-gradient-to-r from-orange-200 to-amber-200 text-[#5b2617] hover:from-orange-250 hover:to-amber-200 hover:scale-105 hover:shadow-lg shadow-orange-200/50'
                     }`}
                   >
                     <Download size={18} />

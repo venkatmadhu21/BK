@@ -1,8 +1,15 @@
 const mongoose = require('mongoose');
-require('dotenv').config({ path: '../.env' });
+const path = require('path');
+console.log('MONGO_URI before dotenv:', process.env.MONGO_URI);
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env'), override: true });
+
+console.log('Loaded MONGO_URI from env:', process.env.MONGO_URI);
 
 // Import the Member model
 const Member = require('../models/Member');
+const User = require('../models/User');
+const LegacyLogin = require('../models/LegacyLogin');
+const LegacyLoginCap = require('../models/LegacyLoginCap');
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -28,6 +35,24 @@ const connectDB = async () => {
     // Check if there are any family members in the database
     const count = await Member.countDocuments();
     console.log(`Number of family members in the database: ${count}`);
+
+    const userCount = await User.countDocuments();
+    console.log(`Number of users in the database: ${userCount}`);
+
+    const legacyLoginCount = await LegacyLogin.countDocuments();
+    console.log(`Legacy login records in login collection: ${legacyLoginCount}`);
+
+    const legacyLoginCapCount = await LegacyLoginCap.countDocuments();
+    console.log(`Legacy login records in Login collection: ${legacyLoginCapCount}`);
+    
+    const users = await User.find().limit(5);
+    console.log('Sample users:', users.map(u => ({ email: u.email, username: u.username, isAdmin: u.isAdmin, isActive: u.isActive })));
+
+    const legacySample = await LegacyLogin.find().limit(5);
+    console.log('Sample legacy login (login collection):', legacySample.map(l => ({ email: l.email, username: l.username, isActive: l.isActive })));
+
+    const legacyCapSample = await LegacyLoginCap.find().limit(5);
+    console.log('Sample legacy login (Login collection):', legacyCapSample.map(l => ({ email: l.email, username: l.username, isActive: l.isActive })));
     
     if (count > 0) {
       // Get a sample of family members
